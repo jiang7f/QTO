@@ -8,30 +8,22 @@ from qto.solvers.options import CircuitOption, OptimizerOption, ModelOption
 from qto.solvers.options.circuit_option import ChCircuitOption
 from qto.model import LinearConstrainedBinaryOptimization as LcboModel
 from qto.utils import iprint
-from qto.utils.linear_system import to_row_echelon_form
+from qto.utils.linear_system import to_row_echelon_form, greedy_simplification_of_transition_Hamiltonian
 from .circuit import QiskitCircuit
 from .provider import Provider
 from .circuit.circuit_components import obj_compnt, new_compnt
+from .qto_search import QTOSearchSolver
 
-
-class NewCircuit(QiskitCircuit[ChCircuitOption]):
+class QTOSimplifyDiscardCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)
-        # self.model_option.Hd_bitstr_list = list(reversed(self.model_option.Hd_bitstr_list))
-        # self.model_option.feasible_state = [0, 0, 1, 0, 0]
-        # first_row = self.model_option.Hd_bitstr_list[0, :]
-        # self.model_option.Hd_bitstr_list = np.vstack([self.model_option.Hd_bitstr_list, first_row])
-        # iprint(self.model_option.Hd_bitstr_list)
-        # if all(self.model_option.Hd_bitstr_list[1][:3] == self.model_option.Hd_bitstr_list[2][:3]):
-        # self.model_option.Hd_bitstr_list[0] = self.model_option.Hd_bitstr_list[0] + self.model_option.Hd_bitstr_list[4]
-        # self.model_option.Hd_bitstr_list = to_row_echelon_form(self.model_option.Hd_bitstr_list)
         iprint(self.model_option.feasible_state)
         iprint(self.model_option.Hd_bitstr_list)
         # exit()
         self.inference_circuit = self.create_circuit()
 
     def get_num_params(self):
-        return self.circuit_option.num_layers * len(self.model_option.Hd_bitstr_list)
+        return len(self.model_option.Hd_bitstr_list)
     
     def inference(self, params):
         final_qc = self.inference_circuit.assign_parameters(params)
@@ -40,6 +32,7 @@ class NewCircuit(QiskitCircuit[ChCircuitOption]):
         return collapse_state, probs
 
     def create_circuit(self) -> QuantumCircuit:
+        
         mcx_mode = self.circuit_option.mcx_mode
         num_layers = self.circuit_option.num_layers
         num_qubits = self.model_option.num_qubits
@@ -52,25 +45,24 @@ class NewCircuit(QiskitCircuit[ChCircuitOption]):
             anc_idx = list(range(num_qubits, 2 * num_qubits))
 
         num_bitstrs = len(self.model_option.Hd_bitstr_list)
-        Hd_params_lst = [[Parameter(f"Hd_params[{i}, {j}]") for j in range(num_bitstrs)] for i in range(num_layers)]
+        Hd_params_lst = [Parameter(f"Hd_params[{i}, {j}]") for j in range(num_bitstrs) for i in range(num_layers)]
 
         for i in np.nonzero(self.model_option.feasible_state)[0]:
             qc.x(i)
 
-        for layer in range(num_layers):
-            new_compnt(
-                qc,
-                Hd_params_lst[layer],
-                self.model_option.Hd_bitstr_list,
-                anc_idx,
-                mcx_mode,
-            )
+        new_compnt(
+            qc,
+            Hd_params_lst,
+            self.model_option.Hd_bitstr_list,
+            anc_idx,
+            mcx_mode,
+        )
 
         qc.measure(range(num_qubits), range(num_qubits)[::-1])
         transpiled_qc = self.circuit_option.provider.transpile(qc)
         return transpiled_qc
 
-class NewSolver(Solver):
+class QTOSimplifyDiscardSolver(Solver):
     def __init__(
         self,
         *,
@@ -82,17 +74,49 @@ class NewSolver(Solver):
         mcx_mode: str = "constant",
     ):
         super().__init__(prb_model, optimizer)
+        # 根据排列理论，直接赋值
+        num_layers = len(self.model_option.Hd_bitstr_list)
+        # 贪心减少非零元 优化跃迁哈密顿量
+        self.model_option.Hd_bitstr_list = greedy_simplification_of_transition_Hamiltonian(self.model_option.Hd_bitstr_list)
+        
         self.circuit_option = ChCircuitOption(
             provider=provider,
             num_layers=num_layers,
             shots=shots,
             mcx_mode=mcx_mode,
         )
+        search_solver = QTOSearchSolver(
+            prb_model=prb_model,
+            optimizer=optimizer,
+            provider=provider,
+            num_layers=num_layers,
+            shots=shots,
+            mcx_mode=mcx_mode
+        )
+
+        _, set_basis_lists, _ = search_solver.search()
+
+        useful_idx = []
+        already_set = set()
+        if len(set_basis_lists[0]) != 1:
+            useful_idx.append(0)
+
+        already_set.update(set_basis_lists[0])
+
+        for i in range(1, len(set_basis_lists)):
+            if set_basis_lists[i] - already_set:
+                already_set.update(set_basis_lists[i])
+                useful_idx.append(i)
+        
+        iprint(useful_idx)
+        Hd_bitstr_list = np.tile(self.model_option.Hd_bitstr_list, (num_layers, 1))
+        self.model_option.Hd_bitstr_list = [item for i, item in enumerate(Hd_bitstr_list) if i in useful_idx]
+
 
     @property
     def circuit(self):
         if self._circuit is None:
-            self._circuit = NewCircuit(self.circuit_option, self.model_option)
+            self._circuit = QTOSimplifyDiscardCircuit(self.circuit_option, self.model_option)
         return self._circuit
 
 

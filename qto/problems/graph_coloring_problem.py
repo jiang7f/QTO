@@ -66,11 +66,13 @@ def generate_gcp(max_problems_per_scale, scale_list, min_value=1, max_value=20):
         selected_combinations = (all_combinations * times_to_repeat)[:max_problems]
             
         for edges_comb in selected_combinations:
-            cost_color = [random.randint(min_value, max_value) for _ in range(num_nodes)]
-            problem = GraphColoringProblem(num_nodes, edges_comb, cost_color)
-            if all(x in [-1, 0, 1]  for row in problem.driver_bitstr for x in row) : 
-                problems.append(problem)
-                configs.append((idx_scale, len(problem.variables), len(problem.lin_constr_mtx), num_nodes, num_edges, edges_comb, cost_color))
+            while True:
+                cost_color = [random.randint(min_value, max_value) for _ in range(num_nodes)]
+                problem = GraphColoringProblem(num_nodes, edges_comb, cost_color)
+                if all(x in [-1, 0, 1]  for row in problem.driver_bitstr for x in row): 
+                    break
+            problems.append(problem)
+            configs.append((idx_scale, len(problem.variables), len(problem.lin_constr_mtx), num_nodes, num_edges, edges_comb, cost_color))
         return problems, configs
 
     problem_list = []

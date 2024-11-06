@@ -8,20 +8,23 @@ from qto.solvers.options import CircuitOption, OptimizerOption, ModelOption
 from qto.solvers.options.circuit_option import ChCircuitOption
 from qto.model import LinearConstrainedBinaryOptimization as LcboModel
 from qto.utils.gadget import pray_for_buddha, iprint
-
+from qto.utils.linear_system import to_row_echelon_form, greedy_simplification_of_transition_Hamiltonian
 from .circuit import QiskitCircuit
 from .provider import Provider
 from .circuit.hdi_decompose import driver_component
 from .circuit.circuit_components import obj_compnt
 
-class ChocoInterMeasCircuit(QiskitCircuit[ChCircuitOption]):
+
+
+class QTOSimplifySegmentedCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)
+        self.model_option.Hd_bitstr_list = greedy_simplification_of_transition_Hamiltonian(self.model_option.Hd_bitstr_list)
         self.create_circuit()
-        print(self.model_option.Hd_bitstr_list)
+        iprint(self.model_option.Hd_bitstr_list)
 
     def get_num_params(self):
-        return self.circuit_option.num_layers
+        return self.circuit_option.num_layers * len(self.model_option.Hd_bitstr_list)
     
     def inference(self, params):
         counts = self.excute_inter_meas_circuit(params)
@@ -87,14 +90,15 @@ class ChocoInterMeasCircuit(QiskitCircuit[ChCircuitOption]):
         register_counts = {''.join(map(str, self.model_option.feasible_state.astype(int))): 1}
         for layer in range(num_layers):
             # obj_compnt(qc, Ho_params[layer], self.model_option.obj_dct)
-            for hdi_qc in self.hdi_qc_list[::-1]:
-                register_counts = run_and_pick(register_counts, hdi_qc, params[layer])
+            len_hdi = len(self.hdi_qc_list)
+            for idx in range(len_hdi):
+                register_counts = run_and_pick(register_counts, self.hdi_qc_list[idx], params[layer * len_hdi + idx])
 
         return register_counts
     
 
 
-class ChocoInterMeasSolver(Solver):
+class QTOSimplifySegmentedSolver(Solver):
     def __init__(
         self,
         *,
@@ -106,6 +110,9 @@ class ChocoInterMeasSolver(Solver):
         mcx_mode: str = "constant",
     ):
         super().__init__(prb_model, optimizer)
+        # 根据排列理论，直接赋值
+        num_layers = len(self.model_option.Hd_bitstr_list)
+
         self.circuit_option = ChCircuitOption(
             provider=provider,
             num_layers=num_layers,
@@ -116,7 +123,7 @@ class ChocoInterMeasSolver(Solver):
     @property
     def circuit(self):
         if self._circuit is None:
-            self._circuit = ChocoInterMeasCircuit(self.circuit_option, self.model_option)
+            self._circuit = QTOSimplifySegmentedCircuit(self.circuit_option, self.model_option)
         return self._circuit
 
 

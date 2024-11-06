@@ -1,5 +1,38 @@
 import numpy as np
 
+# 贪心方式减少非零元
+def greedy_simplification_of_transition_Hamiltonian(Hd_bitstr_list: np.array) -> np.array:
+    # Helper functions
+    def count_non_zero(vec):
+        """Count non-zero elements in the vector."""
+        return np.count_nonzero(vec)
+
+    def is_valid(vec):
+        """Check if the vector elements are in {-1, 0, 1}."""
+        return np.all(np.isin(vec, [-1, 0, 1]))
+
+    # Initialize U' as a copy of the input basis
+    U_prime = np.copy(Hd_bitstr_list)
+
+    # Simplification process
+    for i in range(len(U_prime)):
+        for j in range(i + 1, len(U_prime)):
+            v_add = U_prime[i] + U_prime[j]
+            v_sub = U_prime[i] - U_prime[j]
+
+            # Count non-zero elements
+            n_add = count_non_zero(v_add)
+            n_sub = count_non_zero(v_sub)
+            n_ui = count_non_zero(U_prime[i])
+
+            # Update vector if the new one has fewer non-zero elements and is valid
+            if is_valid(v_add) and n_add < n_ui:
+                U_prime[i] = v_add
+            elif is_valid(v_sub) and n_sub < n_ui:
+                U_prime[i] = v_sub
+
+    return U_prime
+
 # 张量积逆序
 def reorder_tensor_product(matrix):
   dim = matrix.shape[0]

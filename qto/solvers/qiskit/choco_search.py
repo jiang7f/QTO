@@ -53,7 +53,6 @@ class ChocoCircuitSearch(QiskitCircuit[ChCircuitOption]):
             basis_list, depth_list = commute_search_evolution_space(
                 qc,
                 Hd_params[layer],
-                # new_order,
                 self.model_option.Hd_bitstr_list,
                 anc_idx,
                 mcx_mode,
@@ -74,7 +73,7 @@ class ChocoSolverSearch(Solver):
         provider: Provider,
         num_layers: int,
         shots: int = 1024,
-        mcx_mode: str = "linear",
+        mcx_mode: str = "constant",
     ):
         super().__init__(prb_model, optimizer)
         self.circuit_option = ChCircuitOption(

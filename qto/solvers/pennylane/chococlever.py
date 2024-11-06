@@ -66,7 +66,7 @@ class ChocoCleverSolver(Solver):
         optimizer: Optimizer,
         num_layers: int,
         shots: int = 1024,
-        mcx_mode: str = "linear",
+        mcx_mode: str = "constant",
     ):
         super().__init__(prb_model, optimizer)
         self.circuit_option = ChCircuitOption(

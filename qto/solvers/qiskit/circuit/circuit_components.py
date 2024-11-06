@@ -4,7 +4,7 @@ from qiskit import QuantumCircuit
 from typing import Dict
 from .hdi_decompose import driver_component
 from qto.utils.linear_system import get_circ_unitary
-
+from ..provider import Provider
 
 def obj_compnt(qc: QuantumCircuit, param, obj_dct: Dict):
     """https://quantumcomputing.stackexchange.com/questions/5567/circuit-construction-for-hamiltonian-simulation"""
@@ -33,8 +33,9 @@ def penalty_decompose(qc:QuantumCircuit, penalty_m: list, param, num_qubits):
                     qc.rz(coeff * param, j)
                     qc.cx(i, j)
 
-def commute_search_evolution_space(qc: QuantumCircuit, param, Hd_bitstr_list, anc_idx, mcx_mode, num_qubits, shots):
+def commute_search_evolution_space(qc: QuantumCircuit, param, Hd_bitstr_list, anc_idx, mcx_mode, num_qubits, shots, provider:Provider):
     num_basis_list = []
+    set_basis_list = []
     depth_list = []
     from qiskit_aer import AerSimulator
     from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
@@ -48,18 +49,21 @@ def commute_search_evolution_space(qc: QuantumCircuit, param, Hd_bitstr_list, an
         hdi_bitstr = [0 if x == -1 else 1 for x in hdi_vct if x != 0]
         driver_component(qc, nonzero_indices, anc_idx, hdi_bitstr, param, mcx_mode)
         qc_cp:QuantumCircuit = qc.copy()
+        
+        # qc_cp = provider.transpile(qc_cp)
+        # sampler = Sampler(mode=AerSimulator())
+        # qc_cp.measure(range(num_qubits), range(num_qubits)[::-1])
 
-        sampler = Sampler(mode=AerSimulator())
-        qc_cp.measure(range(num_qubits), range(num_qubits)[::-1])
-
-        job = sampler.run([qc_cp], shots=shots)
-        result = job.result()
-        pub_result = result[0]
-        counts = pub_result.data.c.get_counts()
-        print(counts)
+        # job = sampler.run([qc_cp], shots=shots)
+        # result = job.result()
+        # pub_result = result[0]
+        # counts = pub_result.data.c.get_counts()
+        qc_cp = provider.transpile(qc_cp)
+        counts = provider.get_counts(qc_cp, shots=shots)
         num_basis_list.append(len(counts))
+        set_basis_list.append(set(counts.keys()))
         depth_list.append(qc_cp.depth())
-    return num_basis_list, depth_list
+    return num_basis_list, set_basis_list, depth_list
 
 
         # statevector = Statevector.from_instruction(qc_cp)

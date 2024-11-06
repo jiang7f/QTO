@@ -28,8 +28,10 @@ def apply_reverse(qc: QuantumCircuit, list_qubits, bit_string):
 
 def mcx_gate_decompose(qc: QuantumCircuit, list_controls:Iterable, qubit_target:int, list_ancilla:Iterable, mcx_mode):
     if mcx_mode == 'constant':
+        # 自动分解，34 * 非零元
         qc.mcx(list_controls, qubit_target, list_ancilla[0], mode='recursion')
     elif mcx_mode == 'linear':
+        # log 但是用更多比特，拓扑反而更差
         mcx_n_anc_log_decompose(qc,list_controls, qubit_target, list_ancilla)
     else:
         qc.mcx(list_controls, qubit_target, list_ancilla[0])

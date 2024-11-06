@@ -50,12 +50,14 @@ def generate_jsp(num_problems_per_scale, scale_list, min_value=1, max_value=20):
         problems = []
         configs = []
         for _ in range(num_problems):
-            cost = [[random.randint(min_value, max_value) for _ in range(num_machines)] for _ in range(num_jobs)]
-            capacity = generate_capacities(num_machines, total_capacity)
-            problem = JobSchedulingProblem(num_jobs, num_machines, cost, capacity)
-            if all(x in [-1, 0, 1]  for row in problem.driver_bitstr for x in row) : 
-                problems.append(problem)
-                configs.append((idx_scale, len(problem.variables), len(problem.lin_constr_mtx), num_jobs, num_machines, cost, capacity))
+            while True:
+                cost = [[random.randint(min_value, max_value) for _ in range(num_machines)] for _ in range(num_jobs)]
+                capacity = generate_capacities(num_machines, total_capacity)
+                problem = JobSchedulingProblem(num_jobs, num_machines, cost, capacity)
+                if all(x in [-1, 0, 1]  for row in problem.driver_bitstr for x in row): 
+                    break
+            problems.append(problem)
+            configs.append((idx_scale, len(problem.variables), len(problem.lin_constr_mtx), num_jobs, num_machines, cost, capacity))
         return problems, configs
 
     problem_list = []

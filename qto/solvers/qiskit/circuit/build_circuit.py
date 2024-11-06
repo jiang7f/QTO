@@ -54,8 +54,12 @@ class QiskitCircuit(ABC, Generic[T]):
         result = []
 
         for metric in metrics_list:
-            # 使用getattr来根据字符串'feedback'获取属性
-            feedback_value = getattr(self.analyzer, metric)
-            result.append(feedback_value)
+            if metric == 'num_params':
+                result.append(self.get_num_params())
+            else:
+                # 使用getattr来根据字符串'feedback'获取属性
+                feedback_value = getattr(self.analyzer, metric)
+                result.append(feedback_value)
+
 
         return result

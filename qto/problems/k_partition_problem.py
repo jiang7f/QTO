@@ -51,22 +51,24 @@ def generate_kpp(num_problems_per_scale, scale_list, min_value=1, max_value=20):
         allot_idx = 0
         len_block_allot = len(block_allot_list)
         for _ in range(num_problems):
-            pairs_connected = set()
-            while len(pairs_connected) < num_pairs:
-                u = random.randint(0, num_points - 1)
-                v = random.randint(0, num_points - 1)
-                if u != v:
-                    # Ensure unique edges based on vertices only
-                    edge = tuple(sorted((u, v)))
-                    if edge not in pairs_connected:
-                        pairs_connected.add(edge)
-            pairs_connected = [((u, v), random.randint(min_value, max_value)) for (u, v) in pairs_connected]
-            block_allot = block_allot_list[allot_idx]
-            allot_idx = (allot_idx + 1) % len_block_allot
-            problem = KPartitionProblem(num_points, block_allot, pairs_connected)
-            if all(x in [-1, 0, 1]  for row in problem.driver_bitstr for x in row) : 
-                problems.append(problem)
-                configs.append((idx_scale, len(problem.variables), num_points, block_allot, len(pairs_connected), pairs_connected))
+            while True:
+                pairs_connected = set()
+                while len(pairs_connected) < num_pairs:
+                    u = random.randint(0, num_points - 1)
+                    v = random.randint(0, num_points - 1)
+                    if u != v:
+                        # Ensure unique edges based on vertices only
+                        edge = tuple(sorted((u, v)))
+                        if edge not in pairs_connected:
+                            pairs_connected.add(edge)
+                pairs_connected = [((u, v), random.randint(min_value, max_value)) for (u, v) in pairs_connected]
+                block_allot = block_allot_list[allot_idx]
+                allot_idx = (allot_idx + 1) % len_block_allot
+                problem = KPartitionProblem(num_points, block_allot, pairs_connected)
+                if all(x in [-1, 0, 1]  for row in problem.driver_bitstr for x in row): 
+                    break
+            problems.append(problem)
+            configs.append((idx_scale, len(problem.variables), num_points, block_allot, len(pairs_connected), pairs_connected))
         return problems, configs
 
     problem_list = []

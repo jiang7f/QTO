@@ -33,12 +33,14 @@ def generate_flp(num_problems_per_scale, scale_list, min_value=1, max_value=20) 
         problems = []
         configs = []
         for _ in range(num_problems):
-            transport_costs = [[random.randint(min_value, max_value) for _ in range(num_facilities)] for _ in range(num_demands)]
-            facility_costs = [random.randint(min_value, max_value) for _ in range(num_facilities)]
-            problem = FacilityLocationProblem(num_demands, num_facilities, transport_costs, facility_costs)
-            if all(x in [-1, 0, 1]  for row in problem.driver_bitstr for x in row) : 
-                problems.append(problem)
-                configs.append((idx_scale, len(problem.variables), num_demands, num_facilities, transport_costs, facility_costs))
+            while True:
+                transport_costs = [[random.randint(min_value, max_value) for _ in range(num_facilities)] for _ in range(num_demands)]
+                facility_costs = [random.randint(min_value, max_value) for _ in range(num_facilities)]
+                problem = FacilityLocationProblem(num_demands, num_facilities, transport_costs, facility_costs)
+                if all(x in [-1, 0, 1]  for row in problem.driver_bitstr for x in row): 
+                    break
+            problems.append(problem)
+            configs.append((idx_scale, len(problem.variables), num_demands, num_facilities, transport_costs, facility_costs))
         return problems, configs
 
     problem_list = []
