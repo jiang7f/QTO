@@ -26,7 +26,7 @@ new_path = script_path.replace('experiment', 'data')[:-3]
 
 num_cases = 10
 
-flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(1, 2), (3, 2), (3, 3), (3, 4)], 1, 20)
+flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(1, 2), (2, 3), (3, 3), (4, 3)], 1, 20)
 gcp_problems_pkg, gcp_configs_pkg = generate_gcp(num_cases, [(3, 1), (3, 2), (4, 2), (4, 3)])
 kpp_problems_pkg, kpp_configs_pkg = generate_kpp(num_cases, [(4, 2, 3), (6, 3, 5), (8, 3, 7), (9, 3, 8)], 1, 20)
 jsp_problems_pkg, jsp_configs_pkg = generate_jsp(num_cases, [(2, 2, 3), (3, 3, 5), (3, 4, 6), (4, 5, 7)], 1, 20)
@@ -49,11 +49,12 @@ with open(f"{new_path}.config", "w") as file:
             file.write(f'{pkid}: {problem}\n')
 
 # solvers = [HeaSolver, PenaltySolver, ChocoSolver, NewSolver]
-solvers = [HeaSolver, PenaltySolver, ChocoSolver, NewSolver, QTOSimplifySolver, QTOSimplifyDiscardSolver]
-evaluation_metrics = ['best_solution_probs', 'in_constraints_probs', 'ARG', 'iteration_count']
+# solvers = [HeaSolver, PenaltySolver, ChocoSolver, NewSolver, QTOSimplifySolver, QTOSimplifyDiscardSolver]
+solvers = [ChocoSolver, QTOSimplifyDiscardSolver, PenaltySolver, HeaSolver]
+evaluation_metrics = ['best_solution_probs', 'in_constraints_probs', 'ARG', 'iteration_count', 'classcial', 'quantum']
 headers = ['pkid', 'pbid', 'layers', "variables", 'constraints', 'method'] + evaluation_metrics
 
-opt = CobylaOptimizer(max_iter=300)
+opt = CobylaOptimizer(max_iter=200)
 aer = DdsimProvider()
 gpu = AerGpuProvider()
 def process_layer(prb, num_layers, solver):
@@ -65,9 +66,10 @@ def process_layer(prb, num_layers, solver):
         num_layers = num_layers,
         shots = 1024,
     )
-    used_solver.solve()
+    used_solver.solve_with_timing()
     eval = used_solver.evaluation()
-    return eval
+    time = list(used_solver.time_analyze())
+    return eval + time
 
 if __name__ == '__main__':
     all_start_time = time.perf_counter()
@@ -89,7 +91,7 @@ if __name__ == '__main__':
 
             with ProcessPoolExecutor(max_workers=num_processes) as executor:
                 futures = []
-                layer = 5
+                layer = 4
 
                 for pbid, prb in enumerate(problems):
                     print(f'{pkid}-{pbid}, {layer}, {solver} build')

@@ -33,7 +33,7 @@ def penalty_decompose(qc:QuantumCircuit, penalty_m: list, param, num_qubits):
                     qc.rz(coeff * param, j)
                     qc.cx(i, j)
 
-def commute_search_evolution_space(qc: QuantumCircuit, param, Hd_bitstr_list, anc_idx, mcx_mode, num_qubits, shots, provider:Provider):
+def commute_search_evolution_space(qc: QuantumCircuit, param, transpiled_hlist, anc_idx, mcx_mode, num_qubits, shots, provider:Provider):
     num_basis_list = []
     set_basis_list = []
     depth_list = []
@@ -44,22 +44,11 @@ def commute_search_evolution_space(qc: QuantumCircuit, param, Hd_bitstr_list, an
 
     CORE_BASIS_GATES = ["measure", "cx", "id", "rz", "sx", "x"]
     generate_preset_pass_manager(optimization_level=2, basis_gates=CORE_BASIS_GATES,)
-    for hdi_vct in Hd_bitstr_list:
-        nonzero_indices = np.nonzero(hdi_vct)[0].tolist()
-        hdi_bitstr = [0 if x == -1 else 1 for x in hdi_vct if x != 0]
-        driver_component(qc, nonzero_indices, anc_idx, hdi_bitstr, param, mcx_mode)
+    for transpiled_h in transpiled_hlist:
+        qc.compose(transpiled_h, inplace=True)
         qc_cp:QuantumCircuit = qc.copy()
-        
-        # qc_cp = provider.transpile(qc_cp)
-        # sampler = Sampler(mode=AerSimulator())
-        # qc_cp.measure(range(num_qubits), range(num_qubits)[::-1])
-
-        # job = sampler.run([qc_cp], shots=shots)
-        # result = job.result()
-        # pub_result = result[0]
-        # counts = pub_result.data.c.get_counts()
-        qc_cp = provider.transpile(qc_cp)
-        counts = provider.get_counts(qc_cp, shots=shots)
+        qc_cp.measure(range(num_qubits), range(num_qubits)[::-1])
+        counts = provider.get_counts_with_timing(qc_cp, shots=shots)
         num_basis_list.append(len(counts))
         set_basis_list.append(set(counts.keys()))
         depth_list.append(qc_cp.depth())

@@ -5,8 +5,9 @@ from qiskit.converters import dag_to_circuit, circuit_to_dag
 from qiskit.dagcircuit import DAGOpNode
 from qiskit import transpile
 from qiskit_aer import AerSimulator
-from qiskit_ibm_runtime.fake_provider import FakeKyoto, FakeKyiv, FakeSherbrooke, FakeQuebec, FakeAlmadenV2, FakeBelem, FakeSantiago
+from qiskit_ibm_runtime.fake_provider import FakeKyoto, FakeKyiv, FakeQuebec, FakeAlmadenV2, FakeBelem, FakeSantiago
 from .latency import Latency
+from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 
 
 class Metrics:
@@ -22,8 +23,11 @@ class Metrics:
         if backend is None or backend.name == 'aer_simulator':
              self._circuit = circuit
         else:
-            self._circuit = transpile(circuit, backend)
-        self._dagcircuit = circuit_to_dag(circuit)
+            pass_manager = generate_preset_pass_manager(
+                backend=backend, optimization_level=2
+            )
+            self._circuit = pass_manager.run(circuit)
+        self._dagcircuit = circuit_to_dag(self._circuit)
         self._qargs = circuit.qubits
         self._latency = Latency(backend=backend)
         self.width = self._circuit.width()
@@ -39,17 +43,26 @@ class Metrics:
     def latency_for_qubit(self, qubit):
         return self.latency_dict[qubit]
 
+    @property
     def latency_all(self):
         return max(self.latency_dict.values())
+    
+    # @property
+    # def latency_estimation(self):
+    #     # self._circuit.remove_final_measures()
+    #     temp_m = Metrics(self._circuit, FakeKyiv())
+    #     # print(temp_m._circuit.draw())
+    #     return temp_m.latency_all
 
     @property
     def latency_dict(self):
+
         if self._latency_dict is None:
             self._latency_dict = {q: 0 for q in self._qargs}
             for gate in self._dagcircuit.topological_op_nodes():
                 q_indexes = [q._index for q in gate.qargs]
                 if gate.op.name != 'measure':
-                    max_latency = max([self._latency_dict[q] for q in gate.qargs]) + self._latency.calculate(gate.op.name, q_indexes)
+                    max_latency = max([self._latency_dict.get(q,0) for q in gate.qargs]) + self._latency.calculate(gate.op.name, q_indexes)
                 for q in gate.qargs:
                     self._latency_dict[q] = max_latency
         return self._latency_dict
@@ -83,10 +96,10 @@ if __name__ == '__main__':
     print(f'num_one_qubit_gates: {metrics.num_one_qubit_gates}')
     print(f'num_two_qubit_gates: {metrics.num_two_qubit_gates}')
     print(f'size: {metrics.size}')
-    print(f'latency_all(): {metrics.latency_all()}')
+    print(f'latency_all(): {metrics.latency_all}')
     print(f'get_depth_without_one_qubit_gate(): {metrics.get_depth_without_one_qubit_gate()}')
-
-    # def qubit_utilizztion(self):
+    print(metrics.latency_estimation)
+    # def qubit_utilizztion(self): 
     #     ### caculate the latency of whole circuits
     #     gate_latency = {q: 0 for q in self._qargs}
 

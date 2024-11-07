@@ -20,7 +20,7 @@ class QTOSimplifySegmentedCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)
         self.model_option.Hd_bitstr_list = greedy_simplification_of_transition_Hamiltonian(self.model_option.Hd_bitstr_list)
-        self.create_circuit()
+        self.search_circuit()
         iprint(self.model_option.Hd_bitstr_list)
 
     def get_num_params(self):
@@ -31,7 +31,7 @@ class QTOSimplifySegmentedCircuit(QiskitCircuit[ChCircuitOption]):
         collapse_state, probs = self.process_counts(counts)
         return collapse_state, probs
     
-    def create_circuit(self) -> QuantumCircuit:
+    def search_circuit(self) -> QuantumCircuit:
         # pray_for_buddha()
         mcx_mode = self.circuit_option.mcx_mode
         num_qubits = self.model_option.num_qubits
@@ -74,7 +74,7 @@ class QTOSimplifySegmentedCircuit(QiskitCircuit[ChCircuitOption]):
                 qc_add = hdi_qc.assign_parameters([param])
                 qc_temp.compose(qc_add, inplace=True)
                 iprint(f'this hdi depth: {qc_temp.depth()}')
-                count = self.circuit_option.provider.get_counts(qc_temp, shots=self.circuit_option.shots * value // total_count)
+                count = self.circuit_option.provider.get_counts_with_timing(qc_temp, shots=self.circuit_option.shots * value // total_count)
                 dicts.append(count)
 
             iprint(f'evolve: {dicts}')

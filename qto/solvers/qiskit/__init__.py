@@ -19,5 +19,5 @@ from .qto import QTOSolver
 from .qto_search import QTOSearchSolver
 from .qto_simplify import QTOSimplifySolver
 from .qto_simplify_discard import QTOSimplifyDiscardSolver
-from .qto_simplify_segmented import QTOSimplifySegmentedSolver
+# from .z_simplify_segmented import QTOSimplifySegmentedSolver
 # from .qto_simplify_discard import QTOSimplifyDiscardSolver

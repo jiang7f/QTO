@@ -25,7 +25,7 @@ class NewXCircuit(QiskitCircuit[ChCircuitOption]):
         iprint(self.model_option.feasible_state)
         iprint(self.model_option.Hd_bitstr_list)
 
-        self.inference_circuit = self.create_circuit()
+        self.inference_circuit = self.search_circuit()
 
     def get_num_params(self):
         return self.model_option.num_qubits
@@ -36,7 +36,7 @@ class NewXCircuit(QiskitCircuit[ChCircuitOption]):
         collapse_state, probs = self.process_counts(counts)
         return collapse_state, probs
 
-    def create_circuit(self) -> QuantumCircuit:
+    def search_circuit(self) -> QuantumCircuit:
         mcx_mode = self.circuit_option.mcx_mode
         num_layers = self.circuit_option.num_layers
         num_qubits = self.model_option.num_qubits

@@ -27,7 +27,7 @@ class QiskitCircuit(ABC, Generic[T]):
     def inference(self, params):
         pass
 
-    @abstractmethod
+    # @abstractmethod
     def create_circuit(self) -> QuantumCircuit:
         pass
 

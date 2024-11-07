@@ -9,6 +9,7 @@ class Latency:
         # self.quired_dict = {}
     def calculate(self, gate: str, qubit: Union[int, Iterable[int]]):
         if gate not in self.backend.operation_names:
+            print(gate)
             raise ValueError("the input gate is not in basis")
         # key = (gate, tuple(qubit))
         # if key in self.quired_dict:

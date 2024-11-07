@@ -27,7 +27,7 @@ class QTOSimplifyDiscardCircuit(QiskitCircuit[ChCircuitOption]):
     
     def inference(self, params):
         final_qc = self.inference_circuit.assign_parameters(params)
-        counts = self.circuit_option.provider.get_counts(final_qc, shots=self.circuit_option.shots)
+        counts = self.circuit_option.provider.get_counts_with_timing(final_qc, shots=self.circuit_option.shots)
         collapse_state, probs = self.process_counts(counts)
         return collapse_state, probs
 
@@ -107,7 +107,6 @@ class QTOSimplifyDiscardSolver(Solver):
             if set_basis_lists[i] - already_set:
                 already_set.update(set_basis_lists[i])
                 useful_idx.append(i)
-        
         iprint(useful_idx)
         Hd_bitstr_list = np.tile(self.model_option.Hd_bitstr_list, (num_layers, 1))
         self.model_option.Hd_bitstr_list = [item for i, item in enumerate(Hd_bitstr_list) if i in useful_idx]

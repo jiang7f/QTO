@@ -25,9 +25,9 @@ random.seed(0x7f)
 script_path = os.path.abspath(__file__)
 new_path = script_path.replace('experiment', 'data')[:-3]
 
-num_cases = 10
+num_cases = 100
 
-flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(1, 2), (3, 2), (3, 3), (3, 4)], 1, 20)
+flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(1, 2), (2, 3), (3, 3), (4, 3)], 1, 20)
 gcp_problems_pkg, gcp_configs_pkg = generate_gcp(num_cases, [(3, 1), (3, 2), (4, 2), (4, 3)])
 kpp_problems_pkg, kpp_configs_pkg = generate_kpp(num_cases, [(4, 2, 3), (6, 3, 5), (8, 3, 7), (9, 3, 8)], 1, 20)
 jsp_problems_pkg, jsp_configs_pkg = generate_jsp(num_cases, [(2, 2, 3), (3, 3, 5), (3, 4, 6), (4, 5, 7)], 1, 20)
@@ -41,28 +41,29 @@ with open(f"{new_path}.config", "w") as file:
         for problem in configs:
             file.write(f'{pkid}: {problem}\n')
 
-# mcx_modes = ['constant', 'linear']
 metrics_lst = ['depth', 'num_params']
-solvers = [HeaSolver, PenaltySolver, ChocoSolver, QTOSimplifyDiscardSolver]
+solvers = [ChocoSolver]
 headers = ["pkid", 'method', 'layers'] + metrics_lst
 
 opt = CobylaOptimizer(max_iter=200)
-ddsim = DdsimProvider()
+aer = DdsimProvider()
 gpu = AerGpuProvider()
 
 def process_layer(prb, num_layers, solver, metrics_lst):
     used_solver = solver(
         prb_model = prb,
         optimizer = opt,
-        provider = gpu if solver in [HeaSolver, PenaltySolver] else ddsim,
+        provider = gpu if solver in [HeaSolver, PenaltySolver] else aer,
         num_layers = num_layers,
         shots = 1024,
     )
+    
     metrics = used_solver.circuit_analyze(metrics_lst)
+    print(metrics)
     return metrics
 
 if __name__ == '__main__':
-    set_timeout = 60 * 60 * 24 # Set timeout duration
+    set_timeout = 60 * 24 * 3 # Set timeout duration
     num_complete = 0
     script_path = os.path.abspath(__file__)
     new_path = script_path.replace('experiment', 'data')[:-3]
@@ -72,6 +73,7 @@ if __name__ == '__main__':
         writer.writerow(headers)  # Write headers once
 
     num_processes_cpu = os.cpu_count() // 4
+    # num_processes_cpu = os.cpu_count() // 4
     with ProcessPoolExecutor(max_workers=num_processes_cpu) as executor:
         futures = []
         for solver in solvers:
@@ -96,6 +98,8 @@ if __name__ == '__main__':
             except TimeoutError:
                 diff.append('timeout')
                 print(f"Task for problem {pkid}, num_layers {num_layers} timed out.")
+            except Exception as e:
+                print(e)
             finally:
                 row = [pkid, solver, num_layers] + diff
                 with open(f'{new_path}.csv', mode='a', newline='') as file:
