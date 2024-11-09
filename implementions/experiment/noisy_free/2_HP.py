@@ -24,7 +24,7 @@ random.seed(0x7f)
 script_path = os.path.abspath(__file__)
 new_path = script_path.replace('experiment', 'data')[:-3]
 
-num_cases = 10
+num_cases = 16
 
 flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(1, 2), (2, 3), (3, 3), (3, 4)], 1, 10)
 gcp_problems_pkg, gcp_configs_pkg = generate_gcp(num_cases, [(3, 1), (3, 2), (4, 1), (4, 2)])
@@ -54,7 +54,7 @@ solvers = [PenaltySolver, HeaSolver]
 evaluation_metrics = ['best_solution_probs', 'in_constraints_probs', 'ARG', 'iteration_count', 'classcial', 'quantum', 'run_times']
 headers = ['pkid', 'pbid', 'layers', "variables", 'constraints', 'method'] + evaluation_metrics
 
-opt = CobylaOptimizer(max_iter=300)
+opt = CobylaOptimizer(max_iter=200)
 aer = DdsimProvider()
 gpu = AerGpuProvider()
 def process_layer(prb, num_layers, solver):
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     for pkid, (diff_level, problems) in enumerate(problems_pkg):
         for solver in solvers:
             if solver in [HeaSolver, PenaltySolver]:
-                num_processes = 2**(4 - diff_level)
+                num_processes = 2**(3 - diff_level) + 2
             else:
                 num_processes = 5
 
