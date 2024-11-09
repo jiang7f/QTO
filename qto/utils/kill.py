@@ -1,7 +1,7 @@
 import psutil
 
-filter_keyword = "/Tools/anaconda3/envs/qto/bin/python"
-filter_keyword = "qto"
+filter_keyword = "/Tools/anaconda3/envs/Qto/bin/python"
+filter_keyword = "Qto"
 
 # Iterate over all processes
 for process in psutil.process_iter(['pid', 'name', 'exe', 'cmdline']):

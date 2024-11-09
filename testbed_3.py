@@ -6,7 +6,7 @@ from qto.model import LinearConstrainedBinaryOptimization as LcboModel
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
     ChocoSolver, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, ChocoSolverSearch, 
-    QTOSearchSolver, QTOSolver, QTOSimplifySolver, QTOSimplifySegmentedSolver,
+    QtoSearchSolver, QtoSolver, QtoSimplifySolver, QtoSimplifySegmentedSolver,
     AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,
 )
 
@@ -24,7 +24,7 @@ for i in range(num_case):
     opt = CobylaOptimizer(max_iter=200)
     aer = DdsimProvider()
     a[0][i].set_penalty_lambda(400)
-    solver = QTOSearchSolver(
+    solver = QtoSearchSolver(
         prb_model=a[0][i],  # 问题模型
         optimizer=opt,  # 优化器
         provider=aer,  # 提供器（backend + 配对 pass_mannager ）

@@ -16,22 +16,22 @@ from .circuit.circuit_components import obj_compnt
 
 
 
-class QTOSimplifySegmentedCircuit(QiskitCircuit[ChCircuitOption]):
+class QtoSimplifySegmentedCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)
         self.model_option.Hd_bitstr_list = greedy_simplification_of_transition_Hamiltonian(self.model_option.Hd_bitstr_list)
-        self.search_circuit()
+        self.transpile_hlist()
         iprint(self.model_option.Hd_bitstr_list)
 
     def get_num_params(self):
         return self.circuit_option.num_layers * len(self.model_option.Hd_bitstr_list)
     
     def inference(self, params):
-        counts = self.excute_inter_meas_circuit(params)
+        counts = self.segmented_excute_circuit(params)
         collapse_state, probs = self.process_counts(counts)
         return collapse_state, probs
     
-    def search_circuit(self) -> QuantumCircuit:
+    def transpile_hlist(self) -> QuantumCircuit:
         # pray_for_buddha()
         mcx_mode = self.circuit_option.mcx_mode
         num_qubits = self.model_option.num_qubits
@@ -57,7 +57,7 @@ class QTOSimplifySegmentedCircuit(QiskitCircuit[ChCircuitOption]):
             self.hdi_qc_list.append(transpiled_qc)
 
     
-    def excute_inter_meas_circuit(self, params) -> QuantumCircuit:
+    def segmented_excute_circuit(self, params) -> QuantumCircuit:
         num_layers = self.circuit_option.num_layers
 
         def run_and_pick(dict:dict, hdi_qc: QuantumCircuit, param):
@@ -98,7 +98,7 @@ class QTOSimplifySegmentedCircuit(QiskitCircuit[ChCircuitOption]):
     
 
 
-class QTOSimplifySegmentedSolver(Solver):
+class QtoSimplifySegmentedSolver(Solver):
     def __init__(
         self,
         *,
@@ -123,7 +123,7 @@ class QTOSimplifySegmentedSolver(Solver):
     @property
     def circuit(self):
         if self._circuit is None:
-            self._circuit = QTOSimplifySegmentedCircuit(self.circuit_option, self.model_option)
+            self._circuit = QtoSimplifySegmentedCircuit(self.circuit_option, self.model_option)
         return self._circuit
 
 

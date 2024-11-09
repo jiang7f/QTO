@@ -12,9 +12,9 @@ from qto.utils.linear_system import to_row_echelon_form, greedy_simplification_o
 from .circuit import QiskitCircuit
 from .provider import Provider
 from .circuit.circuit_components import obj_compnt, new_compnt
-from .qto_search import QTOSearchSolver
+from .qto_search import QtoSearchSolver
 
-class QTOSimplifyDiscardCircuit(QiskitCircuit[ChCircuitOption]):
+class QtoSimplifyDiscardCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)
         iprint(self.model_option.feasible_state)
@@ -62,7 +62,7 @@ class QTOSimplifyDiscardCircuit(QiskitCircuit[ChCircuitOption]):
         transpiled_qc = self.circuit_option.provider.transpile(qc)
         return transpiled_qc
 
-class QTOSimplifyDiscardSolver(Solver):
+class QtoSimplifyDiscardSolver(Solver):
     def __init__(
         self,
         *,
@@ -85,7 +85,7 @@ class QTOSimplifyDiscardSolver(Solver):
             shots=shots,
             mcx_mode=mcx_mode,
         )
-        search_solver = QTOSearchSolver(
+        search_solver = QtoSearchSolver(
             prb_model=prb_model,
             optimizer=optimizer,
             provider=provider,
@@ -96,6 +96,9 @@ class QTOSimplifyDiscardSolver(Solver):
 
         _, set_basis_lists, _ = search_solver.search()
 
+        min_id = 0
+        max_id = 0
+
         useful_idx = []
         already_set = set()
         if len(set_basis_lists[0]) != 1:
@@ -104,18 +107,20 @@ class QTOSimplifyDiscardSolver(Solver):
         already_set.update(set_basis_lists[0])
 
         for i in range(1, len(set_basis_lists)):
+            # if len(set_basis_lists[i - 1]) == 1 and min_id == i - 1:
+            #     min_id = i
             if set_basis_lists[i] - already_set:
                 already_set.update(set_basis_lists[i])
-                useful_idx.append(i)
-        iprint(useful_idx)
+                max_id = i
+        iprint(f'range({min_id}, {max_id})')
         Hd_bitstr_list = np.tile(self.model_option.Hd_bitstr_list, (num_layers, 1))
-        self.model_option.Hd_bitstr_list = [item for i, item in enumerate(Hd_bitstr_list) if i in useful_idx]
+        self.model_option.Hd_bitstr_list = [item for i, item in enumerate(Hd_bitstr_list) if i >= min_id and i < max_id]
 
 
     @property
     def circuit(self):
         if self._circuit is None:
-            self._circuit = QTOSimplifyDiscardCircuit(self.circuit_option, self.model_option)
+            self._circuit = QtoSimplifyDiscardCircuit(self.circuit_option, self.model_option)
         return self._circuit
 
 

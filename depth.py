@@ -15,7 +15,7 @@ from qto.problems.set_cover_problem import generate_scp
 import numpy as np
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
-    ChocoSolver, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, QTOSolver, QTOSimplifyDiscardSolver, QTOSimplifySolver,
+    ChocoSolver, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, QtoSolver, QtoSimplifyDiscardSolver, QtoSimplifySolver,
     AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,
 )
 

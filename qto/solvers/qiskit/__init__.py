@@ -15,9 +15,13 @@ from .new_x import NewXSolver
 from .cyclic import CyclicSolver
 from .hea import HeaSolver
 from .penalty import PenaltySolver
-from .qto import QTOSolver
-from .qto_search import QTOSearchSolver
-from .qto_simplify import QTOSimplifySolver
-from .qto_simplify_discard import QTOSimplifyDiscardSolver
-# from .z_simplify_segmented import QTOSimplifySegmentedSolver
-# from .qto_simplify_discard import QTOSimplifyDiscardSolver
+from .qto import QtoSolver
+from .qto_simplify import QtoSimplifySolver
+from .qto_simplify_discard import QtoSimplifyDiscardSolver
+from .qto_simplify_discard_segmented import QtoSimplifyDiscardSegmentedSolver
+from .qto_simplify_discard_collapse import QtoSimplifyDiscardCollapseSolver
+from .qto_measure import QtoMeasureSolver
+from .qto_search import QtoSearchSolver
+
+# from .z_simplify_segmented import QtoSimplifySegmentedSolver
+# from .qto_simplify_discard import QtoSimplifyDiscardSolver

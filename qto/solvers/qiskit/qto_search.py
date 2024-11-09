@@ -11,11 +11,11 @@ from qto.utils.linear_system import to_row_echelon_form, greedy_simplification_o
 from qto.utils.gadget import iprint
 from .circuit import QiskitCircuit
 from .provider import Provider
-from .circuit.circuit_components import obj_compnt, commute_search_evolution_space
+from .circuit.circuit_components import obj_compnt, search_evolution_space
 from .circuit.hdi_decompose import driver_component
 
 
-class QTOSearchCircuit(QiskitCircuit[ChCircuitOption]):
+class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)
         iprint(self.model_option.Hd_bitstr_list)
@@ -47,7 +47,8 @@ class QTOSearchCircuit(QiskitCircuit[ChCircuitOption]):
             qc_temp: QuantumCircuit = qc.copy()
             nonzero_indices = np.nonzero(hdi_vct)[0].tolist()
             hdi_bitstr = [0 if x == -1 else 1 for x in hdi_vct if x != 0]
-            driver_component(qc_temp, nonzero_indices, anc_idx, hdi_bitstr, np.pi/4, mcx_mode)
+            H_param = Parameter("1")
+            driver_component(qc_temp, nonzero_indices, anc_idx, hdi_bitstr, H_param, mcx_mode)
             transpiled_qc = self.circuit_option.provider.transpile(qc_temp)
             transpiled_hlist.append(transpiled_qc)
             
@@ -65,7 +66,7 @@ class QTOSearchCircuit(QiskitCircuit[ChCircuitOption]):
             anc_idx = list(range(num_qubits, 2 * num_qubits))
 
         # Ho_params = np.random.rand(num_layers)
-        Hd_params = np.full(num_layers, np.pi/4)
+        
         # Hd_params = np.random.rand(num_layers)
 
         for i in np.nonzero(self.model_option.feasible_state)[0]:
@@ -75,10 +76,11 @@ class QTOSearchCircuit(QiskitCircuit[ChCircuitOption]):
         depth_lists = []
         already_set = set()
         for layer in range(num_layers):
+            Hd_params = np.full(num_layers, np.random.uniform(0.1, np.pi / 4 - 0.1))
             iprint(f"===== times of repetition: {layer + 1} ======")
-            num_basis_list, set_basis_list, depth_list = commute_search_evolution_space(
+            num_basis_list, set_basis_list, depth_list = search_evolution_space(
                 qc,
-                Hd_params[layer],
+                Hd_params,
                 self.transpiled_hlist,
                 anc_idx,
                 mcx_mode,
@@ -99,7 +101,7 @@ class QTOSearchCircuit(QiskitCircuit[ChCircuitOption]):
         return num_basis_lists, set_basis_lists, depth_lists
 
 
-class QTOSearchSolver(Solver):
+class QtoSearchSolver(Solver):
     def __init__(
         self,
         *,
@@ -121,7 +123,7 @@ class QTOSearchSolver(Solver):
     @property
     def circuit(self):
         if self._circuit is None:
-            self._circuit = QTOSearchCircuit(self.circuit_option, self.model_option)
+            self._circuit = QtoSearchCircuit(self.circuit_option, self.model_option)
         return self._circuit
 
     def search(self):

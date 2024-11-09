@@ -1,6 +1,6 @@
 from qto.model import LinearConstrainedBinaryOptimization as LcboModel, fast_mul
 from typing import Iterable, List, Tuple
-
+from qto.utils import iprint
 
 class GraphColoringProblem(LcboModel):
     def __init__(self, num_graphs: int, pairs_adjacent: List[Tuple[int, int]], cost_color: List[int]) -> None:
@@ -48,7 +48,7 @@ class GraphColoringProblem(LcboModel):
             for v in range(self.num_graphs):
                 model.addConstr(X[v, i] <= Y[i])
         
-        print("out feasible case is error, Orz, set 7f free")
+        iprint("out feasible case is error, Orz, set 7f free")
         return model
 
 import random

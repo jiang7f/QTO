@@ -47,6 +47,7 @@ class Solver(ABC):
         self.optimizer.optimizer_option.cost_func = self.circuit.get_circuit_cost_func()
         self.optimizer.optimizer_option.num_params = self.circuit.get_num_params()
         best_params, self.iter_count = self.optimizer.minimize()
+        iprint(best_params)
         self.collapse_state_lst, self.probs_lst = self.circuit.inference(best_params)
         return self.collapse_state_lst, self.probs_lst, self.iter_count
     

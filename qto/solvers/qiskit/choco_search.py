@@ -11,7 +11,7 @@ from qto.utils.gadget import iprint
 
 from .circuit import QiskitCircuit
 from .provider import Provider
-from .circuit.circuit_components import obj_compnt, commute_search_evolution_space
+from .circuit.circuit_components import obj_compnt, search_evolution_space
 from .circuit.hdi_decompose import driver_component
 
 
@@ -77,7 +77,7 @@ class ChocoCircuitSearch(QiskitCircuit[ChCircuitOption]):
             obj_compnt(qc, Ho_params[layer], self.model_option.obj_dct)
             # order=[7, 0, 6,8,5,4,3,2,1]
             # new_order = sorted_list = [self.model_option.Hd_bitstr_list[i] for i in order]
-            basis_list, depth_list = commute_search_evolution_space(
+            basis_list, depth_list = search_evolution_space(
                 qc,
                 Hd_params[layer],
                 self.transpiled_hlist,

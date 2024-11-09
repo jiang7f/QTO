@@ -13,7 +13,7 @@ from .circuit import QiskitCircuit
 from .provider import Provider
 from .circuit.circuit_components import obj_compnt, new_compnt
 
-class QTOCircuit(QiskitCircuit[ChCircuitOption]):
+class QtoCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)
         # self.model_option.Hd_bitstr_list = list(reversed(self.model_option.Hd_bitstr_list))
@@ -69,7 +69,7 @@ class QTOCircuit(QiskitCircuit[ChCircuitOption]):
         transpiled_qc = self.circuit_option.provider.transpile(qc)
         return transpiled_qc
 
-class QTOSolver(Solver):
+class QtoSolver(Solver):
     def __init__(
         self,
         *,
@@ -94,7 +94,7 @@ class QTOSolver(Solver):
     @property
     def circuit(self):
         if self._circuit is None:
-            self._circuit = QTOCircuit(self.circuit_option, self.model_option)
+            self._circuit = QtoCircuit(self.circuit_option, self.model_option)
         return self._circuit
 
 
