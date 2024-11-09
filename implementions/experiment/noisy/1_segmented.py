@@ -63,8 +63,8 @@ def process_layer(prb, num_layers, solver):
     prb.set_penalty_lambda(400)
     used_solver = solver(
         prb_model = prb,
-        optimizer = fake,
-        provider = gpu if solver in [HeaSolver, PenaltySolver] else aer,
+        optimizer = opt,
+        provider = fake,
         num_layers = num_layers,
         shots = 1024,
     )
@@ -90,7 +90,7 @@ if __name__ == '__main__':
             if solver in [HeaSolver, PenaltySolver]:
                 num_processes = 2**(4 - diff_level)
             else:
-                num_processes = 100
+                num_processes = num_processes_cpu
 
             with ProcessPoolExecutor(max_workers=num_processes) as executor:
                 futures = []

@@ -1,4 +1,4 @@
-should_print = False
+should_print = True
 
 from qto.problems.facility_location_problem import generate_flp
 from qto.problems.set_cover_problem import generate_scp
@@ -16,7 +16,7 @@ from qto.utils import counter
 
 num_case = 1
 # a, b = generate_scp(num_case,[(3, 3)])
-a, b = generate_flp(num_case, [(2, 2)], 1, 20)
+a, b = generate_flp(num_case, [(1, 2)], 1, 20)
 # a, b = generate_kpp(num_case, [(5, 3, 4)], 1, 20)
 # a, b = generate_gcp(num_case, [(3, 2)])
 # print(a[0][0])
@@ -30,12 +30,13 @@ arg_lst = []
 for i in range(num_case):
     opt = CobylaOptimizer(max_iter=200)
     aer = DdsimProvider()
+    fake = FakeKyivProvider()
     gpu = AerGpuProvider()
     a[0][i].set_penalty_lambda(200)
-    solver = QtoSimplifyDiscardSegmentedSolver(
+    solver = ChocoSolver(
         prb_model=a[0][i],  # 问题模型
         optimizer=opt,  # 优化器
-        provider=aer,  # 提供器（backend + 配对 pass_mannager ）
+        provider=fake,  # 提供器（backend + 配对 pass_mannager ）
         num_layers=3,
         shots=1024,
         # mcx_mode="linear",

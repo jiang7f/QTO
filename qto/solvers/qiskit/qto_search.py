@@ -64,7 +64,7 @@ class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
         elif mcx_mode == "linear":
             qc = QuantumCircuit(2 * num_qubits, num_qubits)
             anc_idx = list(range(num_qubits, 2 * num_qubits))
-
+        qc = self.circuit_option.provider.transpile(qc)
         # Ho_params = np.random.rand(num_layers)
         
         # Hd_params = np.random.rand(num_layers)

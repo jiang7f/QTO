@@ -46,7 +46,8 @@ class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
             qc = QuantumCircuit(2 * num_qubits, num_qubits)
             # anc_idx = list(range(num_qubits, 2 * num_qubits))
 
-        self.qc = qc
+        self.qc = self.circuit_option.provider.transpile(qc)
+
 
         def run_and_pick(dict:dict, hdi_qc: QuantumCircuit, param):
             iprint("--------------")
