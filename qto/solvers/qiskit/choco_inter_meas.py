@@ -71,7 +71,7 @@ class ChocoInterMeasCircuit(QiskitCircuit[ChCircuitOption]):
                 qc_add = hdi_qc.assign_parameters([param])
                 qc_temp.compose(qc_add, inplace=True)
                 iprint(f'this hdi depth: {qc_temp.depth()}')
-                count = self.circuit_option.provider.get_counts_with_timing(qc_temp, shots=self.circuit_option.shots * value // total_count)
+                count = self.circuit_option.provider.get_counts_with_time(qc_temp, shots=self.circuit_option.shots * value // total_count)
                 dicts.append(count)
 
             iprint(f'evolve: {dicts}')

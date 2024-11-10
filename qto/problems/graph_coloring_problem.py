@@ -26,7 +26,7 @@ class GraphColoringProblem(LcboModel):
             fsb_lst[self.var_idx(self.x[i, i])] = 1
 
         self.fill_feasible_solution(fsb_lst)
-        print(fsb_lst)
+        # print(fsb_lst)
         return fsb_lst
     
     def to_gurobi_model(self):

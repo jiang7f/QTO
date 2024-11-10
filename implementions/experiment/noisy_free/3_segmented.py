@@ -55,10 +55,11 @@ solvers = [QtoSimplifyDiscardSegmentedSolver]
 evaluation_metrics = ['best_solution_probs', 'in_constraints_probs', 'ARG', 'iteration_count', 'classcial', 'quantum', 'run_times']
 headers = ['pkid', 'pbid', 'layers', "variables", 'constraints', 'method'] + evaluation_metrics
 
-opt = CobylaOptimizer(max_iter=300)
-aer = DdsimProvider()
-gpu = AerGpuProvider()
+
 def process_layer(prb, num_layers, solver):
+    opt = CobylaOptimizer(max_iter=300)
+    aer = DdsimProvider()
+    gpu = AerGpuProvider()
     prb.set_penalty_lambda(400)
     used_solver = solver(
         prb_model = prb,
@@ -67,10 +68,10 @@ def process_layer(prb, num_layers, solver):
         num_layers = num_layers,
         shots = 1024,
     )
-    used_solver.solve_with_timing()
+    used_solver.solve()
     eval = used_solver.evaluation()
     time = list(used_solver.time_analyze())
-    run_times = used_solver.run_time_counts()
+    run_times = used_solver.run_counts()
     return eval + time + [run_times]
 
 if __name__ == '__main__':

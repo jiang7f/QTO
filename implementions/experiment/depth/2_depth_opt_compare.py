@@ -46,11 +46,12 @@ metrics_lst = ['depth', 'num_params']
 solvers = [QtoSolver, QtoSimplifySolver]
 headers = ["pkid", 'method', 'layers'] + metrics_lst
 
-opt = CobylaOptimizer(max_iter=200)
-ddsim = DdsimProvider()
-gpu = AerGpuProvider()
+
 
 def process_layer(prb, num_layers, solver, metrics_lst):
+    opt = CobylaOptimizer(max_iter=300)
+    ddsim = DdsimProvider()
+    gpu = AerGpuProvider()
     used_solver = solver(
         prb_model = prb,
         optimizer = opt,

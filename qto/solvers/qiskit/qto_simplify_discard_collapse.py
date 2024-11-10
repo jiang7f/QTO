@@ -27,7 +27,7 @@ class QtoSimplifyDiscardCollapseCircuit(QiskitCircuit[ChCircuitOption]):
     
     def inference(self, params):
         final_qc = self.inference_circuit.assign_parameters(params)
-        counts = self.circuit_option.provider.get_counts_with_timing(final_qc, shots=self.circuit_option.shots)
+        counts = self.circuit_option.provider.get_counts_with_time(final_qc, shots=self.circuit_option.shots)
         collapse_state, probs = self.process_counts(counts)
         return collapse_state, probs
 

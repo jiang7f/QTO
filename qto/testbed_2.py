@@ -10,7 +10,6 @@ from qto.solvers.qiskit import (
     QtoSearchSolver, QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, 
     AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,
 )
-from qto.utils import counter
 
 num_case = 1
 # a, b = generate_scp(num_case,[(5, 5)])
@@ -36,7 +35,7 @@ for i in range(num_case):
         shots=1024
         # mcx_mode="linear",
     )
-    result = solver.solve_with_timing()
+    result = solver.solve()
     u, v, w, x = solver.evaluation()
     print(f"{i}: {u}, {v}, {w}, {x}")
 
@@ -47,7 +46,6 @@ print(solver.circuit_analyze(['depth', 'culled_depth', 'num_params']))
 print(list(solver.time_analyze()))
 # print(sum(best_lst) / num_case, sum(arg_lst) / num_case)
 # t1, t2 = solver.time_analyze()
-# from qto.utils import counter
 # print(counter.total_run_time )
 # print("classical", t1)
 # print("quantum", t2)

@@ -45,11 +45,12 @@ metrics_lst = ['depth', 'num_params']
 solvers = [ChocoSolver]
 headers = ["pkid", 'method', 'layers'] + metrics_lst
 
-opt = CobylaOptimizer(max_iter=200)
-aer = DdsimProvider()
-gpu = AerGpuProvider()
+
 
 def process_layer(prb, num_layers, solver, metrics_lst):
+    opt = CobylaOptimizer(max_iter=300)
+    aer = DdsimProvider()
+    gpu = AerGpuProvider()
     used_solver = solver(
         prb_model = prb,
         optimizer = opt,
