@@ -22,7 +22,6 @@ class Provider(ABC):
         # 运行计数
         self.run_count = 0
 
-
     @abstractmethod
     def get_counts(self, qc: QuantumCircuit, shots: int) -> Dict:
         pass
@@ -34,6 +33,11 @@ class Provider(ABC):
         self.quantum_circuit_execution_time += end_time - start_time  # 计算耗时
         self.run_count += 1
         return result
+    
+    def get_counts_with_dynamic_decoupling(self, qc: QuantumCircuit, shots: int, t1: float, t2: float, dt: float) -> Dict:
+        from mitiq import ddd
+        start_time = time.perf_counter()  # 使用 perf_counter 记录开始时间
+        pass
     
     def transpile(self, qc: QuantumCircuit):
         return self.pass_manager.run(qc)

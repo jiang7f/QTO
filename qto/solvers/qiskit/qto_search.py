@@ -11,7 +11,7 @@ from qto.utils.linear_system import to_row_echelon_form, greedy_simplification_o
 from qto.utils.gadget import iprint
 from .circuit import QiskitCircuit
 from .provider import Provider
-from .circuit.circuit_components import obj_compnt, search_evolution_space
+from .circuit.circuit_components import obj_compnt, search_evolution_space_low_cost
 from .circuit.hdi_decompose import driver_component
 
 
@@ -20,6 +20,7 @@ class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
         super().__init__(circuit_option, model_option)
         iprint(self.model_option.Hd_bitstr_list)
         self.transpiled_hlist = self.transpile_hlist()
+        self._hlist = self.hlist()
         self.result = self.search_circuit()
 
     def get_num_params(self):
@@ -40,7 +41,6 @@ class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
             anc_idx = list(range(num_qubits, 2 * num_qubits))
         self.qc = qc
         
-        # Ho_params = params[:self.circuit_option.num_layers]
 
         transpiled_hlist = []
         for hdi_vct in self.model_option.Hd_bitstr_list:
@@ -54,6 +54,34 @@ class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
             
         return transpiled_hlist
 
+    def hlist(self):
+        """没有经过编译的逻辑电路
+
+        Returns:
+            list: 逻辑电路列表
+        """
+        mcx_mode = self.circuit_option.mcx_mode
+        num_qubits = self.model_option.num_qubits
+        if mcx_mode == "constant":
+            qc = QuantumCircuit(num_qubits + 2, num_qubits)
+            anc_idx = [num_qubits, num_qubits + 1]
+        elif mcx_mode == "linear":
+            qc = QuantumCircuit(2 * num_qubits, num_qubits)
+            anc_idx = list(range(num_qubits, 2 * num_qubits))
+        self.qc = qc
+        
+
+        hlist = []
+        for hdi_vct in self.model_option.Hd_bitstr_list:
+            qc_temp: QuantumCircuit = qc.copy()
+            nonzero_indices = np.nonzero(hdi_vct)[0].tolist()
+            hdi_bitstr = [0 if x == -1 else 1 for x in hdi_vct if x != 0]
+            H_param = Parameter("1")
+            driver_component(qc_temp, nonzero_indices, anc_idx, hdi_bitstr, H_param, mcx_mode)
+            hlist.append(qc_temp)
+            
+        return hlist
+    
     def search_circuit(self) -> QuantumCircuit:
         mcx_mode = self.circuit_option.mcx_mode
         num_layers = self.circuit_option.num_layers
@@ -65,7 +93,7 @@ class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
             qc = QuantumCircuit(2 * num_qubits, num_qubits)
             anc_idx = list(range(num_qubits, 2 * num_qubits))
             
-        # qc = self.circuit_option.provider.transpile(qc)
+        qc = self.circuit_option.provider.transpile(qc)
         # Ho_params = np.random.rand(num_layers)
         
         # Hd_params = np.random.rand(num_layers)
@@ -79,10 +107,10 @@ class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
         for layer in range(num_layers):
             Hd_params = np.full(num_layers, np.random.uniform(0.1, np.pi / 4 - 0.1))
             iprint(f"===== times of repetition: {layer + 1} ======")
-            num_basis_list, set_basis_list, depth_list = search_evolution_space(
+            num_basis_list, set_basis_list, depth_list = search_evolution_space_low_cost(
                 qc,
                 Hd_params,
-                self.transpiled_hlist,
+                self.model_option.Hd_bitstr_list,
                 anc_idx,
                 mcx_mode,
                 num_qubits,
@@ -133,3 +161,7 @@ class QtoSearchSolver(Solver):
     @property
     def transpiled_hlist(self):
         return self.circuit.transpiled_hlist
+    
+    @property
+    def hlist(self):
+        return self.circuit._hlist

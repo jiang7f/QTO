@@ -21,12 +21,13 @@ class Metrics:
             backend (_type_): the qpu backend in IBM backend object, contains the information of a qpu
         """
         if backend is None or backend.name == 'aer_simulator':
-             self._circuit = circuit
+            self._circuit = circuit
         else:
             pass_manager = generate_preset_pass_manager(
                 backend=backend, optimization_level=2
             )
             self._circuit = pass_manager.run(circuit)
+        print("circuit",self._circuit)
         self._dagcircuit = circuit_to_dag(self._circuit)
         self._qargs = circuit.qubits
         self._latency = Latency(backend=backend)

@@ -6,6 +6,8 @@ from .provider import (
     FakeTorinoProvider,
     FakeBrisbaneProvider,
     SimulatorProvider,
+    FakePeekskillProvider,
+    CloudProvider,
 )
 from .choco_inter_meas import ChocoInterMeasSolver
 from .choco_search import ChocoSolverSearch
@@ -22,6 +24,6 @@ from .qto_simplify_discard_segmented import QtoSimplifyDiscardSegmentedSolver
 from .qto_simplify_discard_collapse import QtoSimplifyDiscardCollapseSolver
 from .qto_measure import QtoMeasureSolver
 from .qto_search import QtoSearchSolver
-
+from .qto_simplify_discard_segmented_penalty import QtoSimplifyDiscardSegmentedRxSolver
 # from .z_simplify_segmented import QtoSimplifySegmentedSolver
 # from .qto_simplify_discard import QtoSimplifyDiscardSolver

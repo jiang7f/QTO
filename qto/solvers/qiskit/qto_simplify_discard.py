@@ -17,8 +17,8 @@ from .qto_search import QtoSearchSolver
 class QtoSimplifyDiscardCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)
-        iprint(self.model_option.feasible_state)
-        iprint(self.model_option.Hd_bitstr_list)
+        # iprint(self.model_option.feasible_state)
+        # iprint(self.model_option.Hd_bitstr_list)
         # exit()
         self.inference_circuit = self.create_circuit()
 
@@ -44,7 +44,7 @@ class QtoSimplifyDiscardCircuit(QiskitCircuit[ChCircuitOption]):
             qc = QuantumCircuit(2 * num_qubits, num_qubits)
             anc_idx = list(range(num_qubits, 2 * num_qubits))
 
-        # qc = self.circuit_option.provider.transpile(qc)
+        qc = self.circuit_option.provider.transpile(qc)
         
         num_bitstrs = len(self.model_option.Hd_bitstr_list)
         Hd_params_lst = [Parameter(f"Hd_params[{i}, {j}]") for j in range(num_bitstrs) for i in range(num_layers)]

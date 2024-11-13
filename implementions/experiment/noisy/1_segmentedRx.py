@@ -1,5 +1,3 @@
-# should_print = True
-
 import os
 import time
 import csv
@@ -17,12 +15,13 @@ import numpy as np
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
     ChocoSolver, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, QtoSimplifyDiscardSolver, QtoSimplifySolver, QtoSolver,
-    QtoSimplifyDiscardSegmentedSolver,
+    QtoSimplifyDiscardSegmentedSolver,QtoSimplifyDiscardSegmentedRxSolver,
     AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,FakePeekskillProvider
 )
 
 np.random.seed(0x7f)
 random.seed(0x7f)
+
 script_path = os.path.abspath(__file__)
 new_path = script_path.replace('experiment', 'data')[:-3]
 
@@ -52,7 +51,7 @@ with open(f"{new_path}.config", "w") as file:
 
 # solvers = [HeaSolver, PenaltySolver, ChocoSolver, NewSolver]
 # solvers = [HeaSolver, PenaltySolver, ChocoSolver, NewSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver]
-solvers = [QtoSimplifyDiscardSegmentedSolver]
+solvers = [QtoSimplifyDiscardSegmentedRxSolver]
 evaluation_metrics = ['best_solution_probs', 'in_constraints_probs', 'ARG', 'iteration_count', 'classcial', 'quantum', 'run_times']
 headers = ['pkid', 'pbid', 'layers', "variables", 'constraints', 'method'] + evaluation_metrics
 

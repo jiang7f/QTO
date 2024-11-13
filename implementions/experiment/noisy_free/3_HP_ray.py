@@ -91,7 +91,6 @@ def handle_result(future, prb, pkid, pbid, layer, solver_name, new_path):
             writer.writerow(row)  # 立即写入行
 
 if __name__ == '__main__':
-    ray.init(num_gpus=1) 
     all_start_time = time.perf_counter()
     set_timeout = 60 * 60 * 24 * 3  # 设置超时时间
     num_complete = 0

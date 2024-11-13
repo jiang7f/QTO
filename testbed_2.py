@@ -32,7 +32,7 @@ for i in range(num_case):
     fake = FakeKyivProvider()
     gpu = AerGpuProvider()
     a[0][i].set_penalty_lambda(200)
-    solver = QtoSimplifyDiscardCollapseSolver(
+    solver = QtoSimplifyDiscardSegmentedSolver(
         prb_model=a[0][i],  # 问题模型
         optimizer=opt,  # 优化器
         provider=aer,  # 提供器（backend + 配对 pass_mannager ）
