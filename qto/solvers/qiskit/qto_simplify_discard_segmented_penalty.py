@@ -14,23 +14,23 @@ from .provider import Provider
 from .circuit.circuit_components import obj_compnt, new_compnt
 from .qto_search import QtoSearchSolver
 
-class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
+class QtoSimplifyDiscardSegmentedRxCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption, hlist: list[QuantumCircuit]):
         super().__init__(circuit_option, model_option)
         iprint(self.model_option.feasible_state)
         iprint(self.model_option.Hd_bitstr_list)
         # exit()
-        self.inference_circuit = self.create_circuit()
+        # self.inference_circuit = self.create_circuit()
         self.hlist = hlist
 
     def get_num_params(self):
-        return len(self.hlist)
+        return len(self.hlist)*(self.model_option.num_qubits+1)
     
     def inference(self, params):
         counts = self.segmented_excute_circuit(params)
         collapse_state, probs = self.process_counts(counts)
         return collapse_state, probs
-    
+
     # @property
     # def inference_circuit(self):   
     #     raise Exception("This circuit is not yet suitable for analysis")
@@ -41,7 +41,7 @@ class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
         # self.qc = self.circuit_option.provider.transpile(qc)
 
 
-        def run_and_pick(dict:dict, hdi_qc: QuantumCircuit, param):
+        def run_and_pick(dict:dict, hdi_qc: QuantumCircuit, param, rxparamlist):
             iprint("--------------")
             iprint(f'input dict: {dict}')
             dicts = []
@@ -57,12 +57,13 @@ class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
                         qc_temp.x(idx)
                 qc_add = hdi_qc.assign_parameters([param])
                 qc_temp.compose(qc_add, inplace=True)
+                for i in range(num_qubits):
+                    qc_temp.rx(rxparamlist[i], i)
                 qc_temp.measure(range(num_qubits), range(num_qubits)[::-1])
-                iprint(f'hdi depth: {qc_temp.depth()}')
                 qc_temp = self.circuit_option.provider.transpile(qc_temp)
-                iprint(f'hdi depth after transpile: {qc_temp.depth()}')
                 count = self.circuit_option.provider.get_counts_with_time(qc_temp, shots=self.circuit_option.shots * value // total_count)
                 dicts.append(count)
+            iprint(f'this hdi depth: {qc_temp.depth()}')
 
             iprint(f'evolve: {dicts}')
             merged_dict = {}
@@ -76,11 +77,11 @@ class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
 
         register_counts = {''.join(map(str, self.model_option.feasible_state.astype(int))): 1}
         for i, h_tau in enumerate(self.hlist):
-            register_counts = run_and_pick(register_counts, h_tau, params[i])
+            register_counts = run_and_pick(register_counts, h_tau, params[i], params[len(self.hlist)+i*num_qubits:len(self.hlist)+(i+1)*num_qubits])
 
         return register_counts
 
-class QtoSimplifyDiscardSegmentedSolver(Solver):
+class QtoSimplifyDiscardSegmentedRxSolver(Solver):
     def __init__(
         self,
         *,
@@ -111,38 +112,37 @@ class QtoSimplifyDiscardSegmentedSolver(Solver):
             shots=shots,
             mcx_mode=mcx_mode
         )
-        self.hlist = search_solver.hlist[:1]
 
-        # hlist = search_solver.hlist
-        # _, set_basis_lists, _ = search_solver.search()
+        _, set_basis_lists, _ = search_solver.search()
+        hlist = search_solver.hlist
 
-        # min_id = 0
-        # max_id = 0
+        min_id = 0
+        max_id = 0
 
-        # useful_idx = []
-        # already_set = set()
-        # if len(set_basis_lists[0]) != 1:
-        #     useful_idx.append(0)
+        useful_idx = []
+        already_set = set()
+        if len(set_basis_lists[0]) != 1:
+            useful_idx.append(0)
 
-        # already_set.update(set_basis_lists[0])
+        already_set.update(set_basis_lists[0])
 
-        # for i in range(1, len(set_basis_lists)):
-        #     if len(set_basis_lists[i - 1]) == 1 and min_id == i - 1:
-        #         min_id = i
-        #     if set_basis_lists[i] - already_set:
-        #         already_set.update(set_basis_lists[i])
-        #         max_id = i
-        # iprint(f'range({min_id}, {max_id})')
-        # self.hlist = []
-        # hlist_len = len(hlist)
-        # for i in range(min_id, max_id):
-        #     self.hlist.append(hlist[i % hlist_len])
+        for i in range(1, len(set_basis_lists)):
+            if len(set_basis_lists[i - 1]) == 1 and min_id == i - 1:
+                min_id = i
+            if set_basis_lists[i] - already_set:
+                already_set.update(set_basis_lists[i])
+                max_id = i
+        iprint(f'range({min_id}, {max_id})')
+        self.hlist = []
+        hlist_len = len(hlist)
+        for i in range(min_id, max_id):
+            self.hlist.append(hlist[i % hlist_len])
 
 
     @property
     def circuit(self):
         if self._circuit is None:
-            self._circuit = QtoSimplifyDiscardSegmentedCircuit(self.circuit_option, self.model_option, self.hlist)
+            self._circuit = QtoSimplifyDiscardSegmentedRxCircuit(self.circuit_option, self.model_option, self.hlist)
         return self._circuit
 
 

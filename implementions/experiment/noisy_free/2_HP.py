@@ -98,6 +98,8 @@ if __name__ == '__main__':
 
                 for pbid, prb in enumerate(problems):
                     print(f'{pkid}-{pbid}, {layer}, {solver} build')
+                    process_layer(prb, layer, solver)
+                    break
                     future = executor.submit(process_layer, prb, layer, solver)
                     futures.append((future, prb, pkid, pbid, layer, solver.__name__))
 

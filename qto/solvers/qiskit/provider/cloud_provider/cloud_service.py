@@ -24,5 +24,5 @@ def get_IBM_service(use_free: bool = True, message: str = None, token_index: int
             print(e)
             raise e
     if message:
-            print(message)
+        print(message)
     return service

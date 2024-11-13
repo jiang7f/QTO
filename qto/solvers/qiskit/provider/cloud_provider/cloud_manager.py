@@ -1,21 +1,24 @@
-from quBLP.solvers.cloud_execute import cloud_service
+from .cloud_service import get_IBM_service
 from qiskit_ibm_runtime import SamplerV2 as Sampler
 from qiskit_ibm_runtime.fake_provider import FakeKyiv, FakeTorino, FakeBrisbane
 import time
+import sys
 import random
 from multiprocessing import Process, Queue, current_process, Manager
 
 class CloudManager:
-    def __init__(self, job_dic, results, one_job_lens, sleep_interval=5, use_free=True) -> None:
+    def __init__(self, job_dic, results, one_job_lens, sleep_interval=5,use_free=True) -> None:
+        self.use_free = use_free
+        self.service = get_IBM_service(use_free=self.use_free, message = f"manager IBM service created successful")
         self.job_dic = job_dic
         self.results = results
         self.one_job_lens = one_job_lens
-        self.use_free = use_free
         self.sleep_interval = sleep_interval
         self.lock_result = Manager().Lock()
         self.lock_IBM_run = Manager().Lock()
         self.lock_job_lens = Manager().Lock()
         self.lock_job_dic = Manager().Lock()
+        print(f"cloud manager init successful")
 
     def submit_task(self, backend_shots, circuit):
         task_id = id((backend_shots, circuit))
@@ -34,6 +37,9 @@ class CloudManager:
 
 
     def process_task(self, key):
+        # pass
+        print(f"cloud manager process task start")
+        sys.stdout.flush()
         time.sleep(self.sleep_interval)  # 等待电路线程创建
         while True:
             with self.lock_job_lens:
@@ -43,18 +49,22 @@ class CloudManager:
                 break
             tasks = self.job_dic[key]
             print(f'{key} manager task size: {tasks.qsize()} / {one_job_lens}')
+            sys.stdout.flush()
             if tasks.qsize() >= one_job_lens:
                 try:
+                    pass
+                    time.sleep(self.sleep_interval)
                     print(f"{key}, start to submit to IBM")
+                    sys.stdout.flush()
                     backend_name, shots= key
                     tasks_to_process = []
                     for _ in range(one_job_lens):
                         tasks_to_process.append(tasks.get())
                     # 同时提交似乎有问题
                     with self.lock_IBM_run:
+                        self.use_free = None
                         if self.use_free is not None:
-                            service = cloud_service.get_IBM_service(use_free=self.use_free, message = f"{key} manager IBM service created successful")
-                            backend = service.backend(backend_name)
+                            backend = self.service.backend(backend_name)
                         else:
                             backend = FakeKyiv()
                         sampler = Sampler(backend=backend)
@@ -65,8 +75,11 @@ class CloudManager:
                     #     print(self.circuit_id)
                     #     time.sleep(self.sleep_interval)
                     job_id = job.job_id()
+                    print(f'{key, job_id} submitted to IBM')
+                    sys.stdout.flush()
                     while not job.done():
                         print(f'{job_id} status: {job.status()}')
+                        sys.stdout.flush()
                         time.sleep(self.sleep_interval)
                     # 已得到结果, 清空电路
                     print(f'{key, job_id} status: {job.status()}')

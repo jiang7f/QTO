@@ -1,5 +1,3 @@
-# should_print = True
-
 import os
 import time
 import csv
@@ -18,21 +16,22 @@ from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
     ChocoSolver, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, QtoSimplifyDiscardSolver, QtoSimplifySolver, QtoSolver,
     QtoSimplifyDiscardSegmentedSolver,
-    AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,FakePeekskillProvider
+    AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,
 )
 
 np.random.seed(0x7f)
 random.seed(0x7f)
+
 script_path = os.path.abspath(__file__)
 new_path = script_path.replace('experiment', 'data')[:-3]
 
 num_cases = 100
 
-flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(1, 2), (2, 3)], 1, 20)
-gcp_problems_pkg, gcp_configs_pkg = generate_gcp(num_cases, [(3, 1), (3, 2)])
-kpp_problems_pkg, kpp_configs_pkg = generate_kpp(num_cases, [(4, 2, 3), (5, 3, 4)], 1, 20)
-jsp_problems_pkg, jsp_configs_pkg = generate_jsp(num_cases, [(2, 2, 3), (2, 3, 4)], 1, 20)
-scp_problems_pkg, scp_configs_pkg = generate_scp(num_cases, [(4, 4), (5, 5)])
+flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(3, 3), (3, 4)], 1, 10)
+gcp_problems_pkg, gcp_configs_pkg = generate_gcp(num_cases, [(4, 1), (4, 2)])
+kpp_problems_pkg, kpp_configs_pkg = generate_kpp(num_cases, [(6, 3, 5), (7, 3, 6)], 1, 20)
+jsp_problems_pkg, jsp_configs_pkg = generate_jsp(num_cases, [(3, 3, 5), (3, 4, 6)], 1, 20)
+scp_problems_pkg, scp_configs_pkg = generate_scp(num_cases, [(6, 6), (7, 7)])
 
 problems_pkg = list(
     itertools.chain(
@@ -58,15 +57,14 @@ headers = ['pkid', 'pbid', 'layers', "variables", 'constraints', 'method'] + eva
 
 
 def process_layer(prb, num_layers, solver):
-    opt = CobylaOptimizer(max_iter=10)
+    opt = CobylaOptimizer(max_iter=300)
     aer = DdsimProvider()
     gpu = AerGpuProvider()
-    fake = FakePeekskillProvider()
     prb.set_penalty_lambda(400)
     used_solver = solver(
         prb_model = prb,
         optimizer = opt,
-        provider = fake,
+        provider = gpu if solver in [HeaSolver, PenaltySolver] else aer,
         num_layers = num_layers,
         shots = 1024,
     )
@@ -92,7 +90,7 @@ if __name__ == '__main__':
             if solver in [HeaSolver, PenaltySolver]:
                 num_processes = 2**(4 - diff_level)
             else:
-                num_processes = num_processes_cpu
+                num_processes = 100
 
             with ProcessPoolExecutor(max_workers=num_processes) as executor:
                 futures = []
@@ -100,8 +98,6 @@ if __name__ == '__main__':
 
                 for pbid, prb in enumerate(problems):
                     print(f'{pkid}-{pbid}, {layer}, {solver} build')
-                    # process_layer(prb, layer, solver)
-                    # break
                     future = executor.submit(process_layer, prb, layer, solver)
                     futures.append((future, prb, pkid, pbid, layer, solver.__name__))
 
