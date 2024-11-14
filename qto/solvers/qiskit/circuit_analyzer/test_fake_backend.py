@@ -20,7 +20,7 @@ isa_qc = pm.run(qc)
  
 # You can use a fixed seed to get fixed results.
 options = {"simulator": {"seed_simulator": 42}}
-sampler = Sampler(backend=fake_manila, options=options)
+sampler = Sampler(mode=fake_manila, options=options)
  
 result = sampler.run([isa_qc],shots=1000).result()
 pub_result = result[0]

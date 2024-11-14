@@ -5,7 +5,7 @@ from qiskit.converters import dag_to_circuit, circuit_to_dag
 from qiskit.dagcircuit import DAGOpNode
 from qiskit import transpile
 from qiskit_aer import AerSimulator
-from qiskit_ibm_runtime.fake_provider import FakeKyoto, FakeKyiv, FakeQuebec, FakeAlmadenV2, FakeBelem, FakeSantiago
+from qiskit_ibm_runtime.fake_provider import FakeKyoto, FakeKyiv, FakeQuebec, FakeAlmadenV2, FakeBelemV2, FakeSantiagoV2
 from .latency import Latency
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 
@@ -27,7 +27,7 @@ class Metrics:
                 backend=backend, optimization_level=2
             )
             self._circuit = pass_manager.run(circuit)
-        print("circuit",self._circuit)
+        # print("circuit",self._circuit)
         self._dagcircuit = circuit_to_dag(self._circuit)
         self._qargs = circuit.qubits
         self._latency = Latency(backend=backend)

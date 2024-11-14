@@ -17,8 +17,8 @@ from .qto_search import QtoSearchSolver
 class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption, hlist: list[QuantumCircuit]):
         super().__init__(circuit_option, model_option)
-        iprint(self.model_option.feasible_state)
-        iprint(self.model_option.Hd_bitstr_list)
+        # iprint(self.model_option.feasible_state)
+        # iprint(self.model_option.Hd_bitstr_list)
         # exit()
         self.inference_circuit = self.create_circuit()
         self.hlist = hlist
@@ -40,37 +40,37 @@ class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
         num_qubits = self.model_option.num_qubits
         # self.qc = self.circuit_option.provider.transpile(qc)
 
-
         def run_and_pick(dict:dict, hdi_qc: QuantumCircuit, param):
-            iprint("--------------")
-            iprint(f'input dict: {dict}')
+            # iprint("--------------")
+            # iprint(f'input dict: {dict}')
             dicts = []
             total_count = sum(dict.values())
             for key, value in dict.items():
                 if mcx_mode == "constant":
                     qc_temp = QuantumCircuit(num_qubits + 2, num_qubits)
-                    # anc_idx = [num_qubits, num_qubits + 1]
                 elif mcx_mode == "linear":
                     qc_temp = QuantumCircuit(2 * num_qubits, num_qubits)
+
                 for idx, key_i in enumerate(key):
                     if key_i == '1':
                         qc_temp.x(idx)
                 qc_add = hdi_qc.assign_parameters([param])
                 qc_temp.compose(qc_add, inplace=True)
                 qc_temp.measure(range(num_qubits), range(num_qubits)[::-1])
-                iprint(f'hdi depth: {qc_temp.depth()}')
+                # iprint(f'hdi depth: {qc_temp.depth()}')
                 qc_temp = self.circuit_option.provider.transpile(qc_temp)
-                iprint(f'hdi depth after transpile: {qc_temp.depth()}')
+                # iprint(f'hdi depth after transpile: {qc_temp.depth()}')
                 count = self.circuit_option.provider.get_counts_with_time(qc_temp, shots=self.circuit_option.shots * value // total_count)
                 dicts.append(count)
+            # iprint(f'this hdi depth: {qc_temp.depth()}')
 
-            iprint(f'evolve: {dicts}')
+            # iprint(f'evolve: {dicts}')
             merged_dict = {}
             for d in dicts:
                 for key, value in d.items():
                     if all([np.dot([int(char) for char in key], constr[:-1]) == constr[-1] for constr in self.model_option.lin_constr_mtx]):
                         merged_dict[key] = merged_dict.get(key, 0) + value
-            iprint(f'feasible counts: {merged_dict}')
+            # iprint(f'feasible counts: {merged_dict}')
             return merged_dict
 
 
@@ -111,32 +111,32 @@ class QtoSimplifyDiscardSegmentedSolver(Solver):
             shots=shots,
             mcx_mode=mcx_mode
         )
-        self.hlist = search_solver.hlist[:1]
+        # self.hlist = search_solver.hlist[:1]
 
-        # hlist = search_solver.hlist
-        # _, set_basis_lists, _ = search_solver.search()
+        hlist = search_solver.hlist
+        _, set_basis_lists, _ = search_solver.search()
 
-        # min_id = 0
-        # max_id = 0
+        min_id = 0
+        max_id = 0
 
-        # useful_idx = []
-        # already_set = set()
-        # if len(set_basis_lists[0]) != 1:
-        #     useful_idx.append(0)
+        useful_idx = []
+        already_set = set()
+        if len(set_basis_lists[0]) != 1:
+            useful_idx.append(0)
 
-        # already_set.update(set_basis_lists[0])
+        already_set.update(set_basis_lists[0])
 
-        # for i in range(1, len(set_basis_lists)):
-        #     if len(set_basis_lists[i - 1]) == 1 and min_id == i - 1:
-        #         min_id = i
-        #     if set_basis_lists[i] - already_set:
-        #         already_set.update(set_basis_lists[i])
-        #         max_id = i
-        # iprint(f'range({min_id}, {max_id})')
-        # self.hlist = []
-        # hlist_len = len(hlist)
-        # for i in range(min_id, max_id):
-        #     self.hlist.append(hlist[i % hlist_len])
+        for i in range(1, len(set_basis_lists)):
+            if len(set_basis_lists[i - 1]) == 1 and min_id == i - 1:
+                min_id = i
+            if set_basis_lists[i] - already_set:
+                already_set.update(set_basis_lists[i])
+                max_id = i
+        iprint(f'range({min_id}, {max_id})')
+        self.hlist = []
+        hlist_len = len(hlist)
+        for i in range(min_id, max_id):
+            self.hlist.append(hlist[i % hlist_len])
 
 
     @property

@@ -67,7 +67,7 @@ class CloudManager:
                             backend = self.service.backend(backend_name)
                         else:
                             backend = FakeKyiv()
-                        sampler = Sampler(backend=backend)
+                        sampler = Sampler(mode=backend)
                         task_ids = [task_id for task_id, _ in tasks_to_process]
                         circuits = [circuit for _, circuit in tasks_to_process]
                         job = sampler.run(circuits, shots=shots)

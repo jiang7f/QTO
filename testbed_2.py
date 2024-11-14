@@ -9,7 +9,7 @@ from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
     ChocoSolver, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, ChocoSolverSearch, ChocoInterMeasSolver,
     QtoSearchSolver, QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver,
-    QtoMeasureSolver, QtoSimplifyDiscardCollapseSolver,
+    QtoMeasureSolver, QtoSimplifyDiscardCollapseSolver, 
     AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,
 )
 
@@ -47,7 +47,7 @@ for i in range(num_case):
     best_lst.append(u)
     arg_lst.append(w)
 
-    print(solver.circuit_analyze(['depth', 'culled_depth', 'num_params']))
+    # print(solver.circuit_analyze(['depth', 'culled_depth', 'num_params']))
     # print(list(solver.time_analyze()))
     # print(sum(best_lst) / num_case, sum(arg_lst) / num_case)
     t1, t2 = solver.time_analyze()

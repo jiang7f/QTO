@@ -1,3 +1,4 @@
+should_print = True
 import os
 import time
 import csv
@@ -27,11 +28,11 @@ new_path = script_path.replace('experiment', 'data')[:-3]
 
 num_cases = 100
 
-flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(3, 3), (3, 4)], 1, 10)
-gcp_problems_pkg, gcp_configs_pkg = generate_gcp(num_cases, [(4, 1), (4, 2)])
-kpp_problems_pkg, kpp_configs_pkg = generate_kpp(num_cases, [(6, 3, 5), (7, 3, 6)], 1, 20)
-jsp_problems_pkg, jsp_configs_pkg = generate_jsp(num_cases, [(3, 3, 5), (3, 4, 6)], 1, 20)
-scp_problems_pkg, scp_configs_pkg = generate_scp(num_cases, [(6, 6), (7, 7)])
+flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(1, 2), (2, 3), (3, 3), (3, 4)], 1, 20)
+gcp_problems_pkg, gcp_configs_pkg = generate_gcp(num_cases, [(3, 1), (3, 2), (4, 1), (4, 2)])
+kpp_problems_pkg, kpp_configs_pkg = generate_kpp(num_cases, [(4, 2, 3), (5, 3, 4), (6, 3, 5), (7, 3, 6)], 1, 20)
+jsp_problems_pkg, jsp_configs_pkg = generate_jsp(num_cases, [(2, 2, 3), (2, 3, 4), (3, 3, 5), (3, 4, 6)], 1, 20)
+scp_problems_pkg, scp_configs_pkg = generate_scp(num_cases, [(4, 4), (5, 5), (6, 6), (7, 7)])
 
 problems_pkg = list(
     itertools.chain(
@@ -59,12 +60,11 @@ headers = ['pkid', 'pbid', 'layers', "variables", 'constraints', 'method'] + eva
 def process_layer(prb, num_layers, solver):
     opt = CobylaOptimizer(max_iter=300)
     aer = DdsimProvider()
-    gpu = AerGpuProvider()
     prb.set_penalty_lambda(400)
     used_solver = solver(
         prb_model = prb,
         optimizer = opt,
-        provider = gpu if solver in [HeaSolver, PenaltySolver] else aer,
+        provider = aer,
         num_layers = num_layers,
         shots = 1024,
     )
@@ -74,14 +74,17 @@ def process_layer(prb, num_layers, solver):
     run_times = used_solver.run_counts()
     return eval + time + [run_times]
 
+skip = 0
+num_skip = 1505
+
 if __name__ == '__main__':
     all_start_time = time.perf_counter()
-    set_timeout = 60 * 60 * 24 * 3 # Set timeout duration
+    set_timeout = 60 * 60 * 1.5 # Set timeout duration
     num_complete = 0
     print(new_path)
-    with open(f'{new_path}.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(headers)  # Write headers once
+    # with open(f'{new_path}.csv', mode='w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow(headers)  # Write headers once
 
     num_processes_cpu = os.cpu_count()
     # pkid-pbid: 问题包序-包内序号
@@ -97,6 +100,9 @@ if __name__ == '__main__':
                 layer = 5
 
                 for pbid, prb in enumerate(problems):
+                    if skip < num_skip:
+                        skip += 1
+                        continue
                     print(f'{pkid}-{pbid}, {layer}, {solver} build')
                     future = executor.submit(process_layer, prb, layer, solver)
                     futures.append((future, prb, pkid, pbid, layer, solver.__name__))

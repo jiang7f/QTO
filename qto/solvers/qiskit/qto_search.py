@@ -142,6 +142,9 @@ class QtoSearchSolver(Solver):
         mcx_mode: str = "constant",
     ):
         super().__init__(prb_model, optimizer)
+        # m 层
+        num_layers = len(self.model_option.Hd_bitstr_list)
+
         self.circuit_option = ChCircuitOption(
             provider=provider,
             num_layers=num_layers,

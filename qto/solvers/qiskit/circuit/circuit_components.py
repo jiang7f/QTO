@@ -50,7 +50,9 @@ def search_evolution_space_low_cost(qc: QuantumCircuit, params, Hd_bitstr_list, 
         nonzero_indices = np.nonzero(hdi_vct)[0].tolist()
         hdi_bitstr = [0 if x == -1 else 1 for x in hdi_vct if x != 0]
         driver_component(qc, nonzero_indices, anc_idx, hdi_bitstr, params[i], mcx_mode)
-        qc_cp = provider.transpile(qc)
+        qc_cp:QuantumCircuit = qc.copy()
+        qc_cp.measure(range(num_qubits), range(num_qubits)[::-1])
+        qc_cp = provider.transpile(qc_cp)
         counts = provider.get_counts_with_time(qc_cp, shots=shots)
         num_basis_list.append(len(counts))
         set_basis_list.append(set(counts.keys()))

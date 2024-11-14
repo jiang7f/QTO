@@ -6,7 +6,7 @@ from qto.model import LinearConstrainedBinaryOptimization as LcboModel
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
     ChocoSolver, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, ChocoSolverSearch, 
-    QtoSearchSolver, QtoSolver, QtoSimplifySolver, QtoSimplifySegmentedSolver,
+    QtoSearchSolver, QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSegmentedSolver,
     AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,
 )
 
@@ -28,7 +28,7 @@ for i in range(num_case):
         prb_model=a[0][i],  # 问题模型
         optimizer=opt,  # 优化器
         provider=aer,  # 提供器（backend + 配对 pass_mannager ）
-        num_layers=5,
+        num_layers=1,
         shots=1024,
         # mcx_mode="linear",
     )
