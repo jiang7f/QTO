@@ -75,7 +75,7 @@ def process_layer(prb, num_layers, solver):
     return eval + time + [run_times]
 
 skip = 0
-num_skip = 1505
+num_skip = 1900
 
 if __name__ == '__main__':
     all_start_time = time.perf_counter()

@@ -7,17 +7,23 @@ import random
 from multiprocessing import Process, Queue, current_process, Manager
 
 class CloudManager:
-    def __init__(self, job_dic, results, one_job_lens, sleep_interval=5,use_free=True) -> None:
+    def __init__(self, job_dic, results, one_job_lens, sleep_interval=5,use_free=True, token_idx = 0) -> None:
+        self.token_idx = token_idx
         self.use_free = use_free
-        self.service = get_IBM_service(use_free=self.use_free, message = f"manager IBM service created successful")
+        while True:
+            try:
+                self.service = get_IBM_service(use_free=self.use_free, message = f"manager IBM service created successful", token_idx=self.token_idx)
+                break
+            except Exception as e:
+                print(e)
+                self.token_idx += 1
         self.job_dic = job_dic
         self.results = results
         self.one_job_lens = one_job_lens
         self.sleep_interval = sleep_interval
         self.lock_result = Manager().Lock()
-        self.lock_IBM_run = Manager().Lock()
         self.lock_job_lens = Manager().Lock()
-        self.lock_job_dic = Manager().Lock()
+        self.lock_IBM_run = Manager().Lock()
         print(f"cloud manager init successful")
 
     def submit_task(self, backend_shots, circuit):
@@ -32,11 +38,11 @@ class CloudManager:
 
     def one_optimization_finished(self):
         with self.lock_job_lens:
+            print("one_optimization_finished")
             self.one_job_lens.value -= 1
 
-
-
     def process_task(self, key):
+        # self.lock_job_dic = Manager().Lock()
         # pass
         print(f"cloud manager process task start")
         sys.stdout.flush()
@@ -52,7 +58,6 @@ class CloudManager:
             sys.stdout.flush()
             if tasks.qsize() >= one_job_lens:
                 try:
-                    pass
                     time.sleep(self.sleep_interval)
                     print(f"{key}, start to submit to IBM")
                     sys.stdout.flush()
@@ -61,26 +66,40 @@ class CloudManager:
                     for _ in range(one_job_lens):
                         tasks_to_process.append(tasks.get())
                     # 同时提交似乎有问题
+                    service_valid = True
                     with self.lock_IBM_run:
-                        self.use_free = None
-                        if self.use_free is not None:
-                            backend = self.service.backend(backend_name)
-                        else:
-                            backend = FakeKyiv()
-                        sampler = Sampler(mode=backend)
-                        task_ids = [task_id for task_id, _ in tasks_to_process]
-                        circuits = [circuit for _, circuit in tasks_to_process]
-                        job = sampler.run(circuits, shots=shots)
-                    # while True:
-                    #     print(self.circuit_id)
-                    #     time.sleep(self.sleep_interval)
-                    job_id = job.job_id()
-                    print(f'{key, job_id} submitted to IBM')
-                    sys.stdout.flush()
-                    while not job.done():
-                        print(f'{job_id} status: {job.status()}')
-                        sys.stdout.flush()
-                        time.sleep(self.sleep_interval)
+                        # 遍历token 如果token异常，切换下一个token_idx 重新提交
+                        while True:
+                            try:
+                                if not service_valid:
+                                    self.service = get_IBM_service(use_free=self.use_free, message = f"switch to token {self.token_idx} service", token_idx=self.token_idx)
+                                    service_valid = True
+
+                                if self.use_free is not None:
+                                    backend = self.service.backend(backend_name)
+                                else:
+                                    backend = FakeKyiv()
+
+                                sampler = Sampler(mode=backend)
+                                task_ids = [task_id for task_id, _ in tasks_to_process]
+                                circuits = [circuit for _, circuit in tasks_to_process]
+                                job = sampler.run(circuits, shots=shots)
+                                job_id = job.job_id()
+                                print(f'{key, job_id} submitted to IBM')
+                                sys.stdout.flush()
+                                while not job.done():
+                                    print(f'{job_id} status: {job.status()}')
+                                    sys.stdout.flush()
+                                    if job.status() not in ['RUNNING', 'QUEUED', 'DONE']:
+                                        raise Exception(f"token {self.token_idx} service error")
+                                    time.sleep(self.sleep_interval)
+                                break
+                            except Exception as e:
+                                print(e)
+                            self.token_idx += 1
+                            service_valid = False
+
+
                     # 已得到结果, 清空电路
                     print(f'{key, job_id} status: {job.status()}')
                     counts = [job.result()[i].data.c.get_counts() for i in range(one_job_lens)]

@@ -145,8 +145,11 @@ class QtoSearchSolver(Solver):
         # m 层
         num_layers = len(self.model_option.Hd_bitstr_list)
 
+        # need to refix
+        from qto.solvers.qiskit import DdsimProvider
+
         self.circuit_option = ChCircuitOption(
-            provider=provider,
+            provider=DdsimProvider(),
             num_layers=num_layers,
             shots=shots,
             mcx_mode=mcx_mode,

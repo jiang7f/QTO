@@ -9,7 +9,7 @@ ibm_cloud_crn = ''
 service = QiskitRuntimeService(channel='ibm_quantum', token=ibm_token)
 # service = QiskitRuntimeService(channel='ibm_cloud', token=ibm_cloud_api, instance=ibm_cloud_crn)
 print("service created successfully!")
-
+# get_IBM_service(use_free: bool = True, message: str = None, token_idx: int = 0)
 backend = service.backend("ibm_brisbane")
 
 from qiskit import QuantumCircuit, transpile
