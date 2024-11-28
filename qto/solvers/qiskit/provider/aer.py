@@ -17,7 +17,7 @@ class AerProvider(Provider):
         )
 
     def get_counts(self, qc: QuantumCircuit, shots: int) -> Dict:
-        sampler = Sampler(backend=self.backend, options=options)
+        sampler = Sampler(mode=self.backend, options=options)
         job = sampler.run([qc], shots=shots)
         result = job.result()
         pub_result = result[0]
@@ -35,7 +35,7 @@ class AerGpuProvider(Provider):
         )
 
     def get_counts(self, qc: QuantumCircuit, shots: int) -> Dict:
-        sampler = Sampler(backend=self.backend, options=options)
+        sampler = Sampler(mode=self.backend, options=options)
         job = sampler.run([qc], shots=shots)
         result = job.result()
         pub_result = result[0]

@@ -14,7 +14,7 @@ class FakeKyivProvider(Provider):
         )
 
     def get_counts(self, qc: QuantumCircuit, shots: int):
-        sampler = Sampler(backend=self.backend)
+        sampler = Sampler(mode=self.backend)
         job = sampler.run([qc], shots=shots)
         result = job.result()
         pub_result = result[0]
@@ -31,7 +31,7 @@ class FakeTorinoProvider(Provider):
         )
 
     def get_counts(self, qc: QuantumCircuit, shots: int):
-        sampler = Sampler(backend=self.backend)
+        sampler = Sampler(mode=self.backend)
         job = sampler.run([qc], shots=shots)
         result = job.result()
         pub_result = result[0]
@@ -48,7 +48,7 @@ class FakeBrisbaneProvider(Provider):
         )
 
     def get_counts(self, qc: QuantumCircuit, shots: int):
-        sampler = Sampler(backend=self.backend)
+        sampler = Sampler(mode=self.backend)
         job = sampler.run([qc], shots=shots)
         result = job.result()
         pub_result = result[0]

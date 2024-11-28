@@ -43,7 +43,7 @@ with open(f"{new_path}.config", "w") as file:
 
 # mcx_modes = ['constant', 'linear']
 metrics_lst = ['depth', 'num_params']
-solvers = [HeaSolver, PenaltySolver, ChocoSolver, QtoSimplifyDiscardSolver]
+solvers = [QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver]
 headers = ["pkid", 'method', 'layers'] + metrics_lst
 
 

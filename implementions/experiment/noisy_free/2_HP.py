@@ -24,7 +24,7 @@ random.seed(0x7f)
 script_path = os.path.abspath(__file__)
 new_path = script_path.replace('experiment', 'data')[:-3]
 
-num_cases = 100
+num_cases = 50
 
 flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(1, 2), (2, 3), (3, 3), (3, 4)], 1, 20)
 gcp_problems_pkg, gcp_configs_pkg = generate_gcp(num_cases, [(3, 1), (3, 2), (4, 1), (4, 2)])
@@ -73,30 +73,35 @@ def process_layer(prb, num_layers, solver):
     run_times = used_solver.run_counts()
     return eval + time + [run_times]
 
+skip = 0
+num_skip = 1200
+
 if __name__ == '__main__':
     all_start_time = time.perf_counter()
-    set_timeout = 60 * 60 * 24 * 3 # Set timeout duration
+    set_timeout = 60 * 60 * 2 # Set timeout duration
     num_complete = 0
     print(new_path)
-    with open(f'{new_path}.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(headers)  # Write headers once
+    # with open(f'{new_path}.csv', mode='w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow(headers)  # Write headers once
 
     num_processes_cpu = os.cpu_count()
     # pkid-pbid: 问题包序-包内序号
     for pkid, (diff_level, problems) in enumerate(problems_pkg):
         for solver in solvers:
             if solver in [HeaSolver, PenaltySolver]:
-                num_processes = 2**(3 - diff_level) + 1
+                num_processes = 2**(4 - diff_level) + 1
             else:
                 num_processes = 100
 
             with ProcessPoolExecutor(max_workers=num_processes) as executor:
-                print(num_processes)
                 futures = []
                 layer = 5
 
                 for pbid, prb in enumerate(problems):
+                    if skip < num_skip:
+                        skip += 1
+                        continue
                     print(f'{pkid}-{pbid}, {layer}, {solver} build')
                     future = executor.submit(process_layer, prb, layer, solver)
                     futures.append((future, prb, pkid, pbid, layer, solver.__name__))

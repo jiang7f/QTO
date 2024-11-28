@@ -28,12 +28,13 @@ optimize = m.optimize()
 print(f"optimize_cost: {optimize}\n\n")
 # sovler ----------------------------------------------
 opt = CobylaOptimizer(max_iter=2)
-# opt = AdamOptimizer(max_iter=200)
 aer = DdsimProvider()
-solver = QtoSimplifyDiscardSolver(
+gpu = AerGpuProvider()
+# opt = AdamOptimizer(max_iter=200)
+solver = HeaSolver(
     prb_model=m,  # 问题模型
     optimizer=opt,  # 优化器
-    provider=aer,  # 提供器（backend + 配对 pass_mannager ）
+    provider=gpu,  # 提供器（backend + 配对 pass_mannager ）
     num_layers=1,
     # mcx_mode="linear",
 )

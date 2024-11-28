@@ -6,6 +6,7 @@ from .provider import (
     FakeTorinoProvider,
     FakeBrisbaneProvider,
     SimulatorProvider,
+    CloudProvider,
 )
 from .choco_inter_meas import ChocoInterMeasSolver
 from .choco_search import ChocoSolverSearch

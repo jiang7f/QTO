@@ -15,7 +15,6 @@ import numpy as np
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
     ChocoSolver, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, QtoSimplifyDiscardSolver, QtoSimplifySolver, QtoSolver,
-    QtoSimplifyDiscardSegmentedSolver,
     AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,
 )
 
@@ -27,11 +26,11 @@ new_path = script_path.replace('experiment', 'data')[:-3]
 
 num_cases = 100
 
-flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(1, 2), (2, 3)], 1, 20)
-gcp_problems_pkg, gcp_configs_pkg = generate_gcp(num_cases, [(3, 1), (3, 2)])
-kpp_problems_pkg, kpp_configs_pkg = generate_kpp(num_cases, [(4, 2, 3), (5, 3, 4)], 1, 20)
-jsp_problems_pkg, jsp_configs_pkg = generate_jsp(num_cases, [(2, 2, 3), (2, 3, 4)], 1, 20)
-scp_problems_pkg, scp_configs_pkg = generate_scp(num_cases, [(4, 4), (5, 5)])
+flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(1, 2), (2, 3), (3, 3), (3, 4)], 1, 20)
+gcp_problems_pkg, gcp_configs_pkg = generate_gcp(num_cases, [(3, 1), (3, 2), (4, 1), (4, 2)])
+kpp_problems_pkg, kpp_configs_pkg = generate_kpp(num_cases, [(4, 2, 3), (5, 3, 4), (6, 3, 5), (7, 3, 6)], 1, 20)
+jsp_problems_pkg, jsp_configs_pkg = generate_jsp(num_cases, [(2, 2, 3), (2, 3, 4), (3, 3, 5), (3, 4, 6)], 1, 20)
+scp_problems_pkg, scp_configs_pkg = generate_scp(num_cases, [(4, 4), (5, 5), (6, 6), (7, 7)])
 
 problems_pkg = list(
     itertools.chain(
@@ -51,7 +50,7 @@ with open(f"{new_path}.config", "w") as file:
 
 # solvers = [HeaSolver, PenaltySolver, ChocoSolver, NewSolver]
 # solvers = [HeaSolver, PenaltySolver, ChocoSolver, NewSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver]
-solvers = [QtoSimplifyDiscardSegmentedSolver]
+solvers = [ChocoSolver]
 evaluation_metrics = ['best_solution_probs', 'in_constraints_probs', 'ARG', 'iteration_count', 'classcial', 'quantum', 'run_times']
 headers = ['pkid', 'pbid', 'layers', "variables", 'constraints', 'method'] + evaluation_metrics
 
@@ -60,12 +59,11 @@ def process_layer(prb, num_layers, solver):
     opt = CobylaOptimizer(max_iter=300)
     aer = DdsimProvider()
     gpu = AerGpuProvider()
-    fake = FakeBrisbaneProvider()
     prb.set_penalty_lambda(400)
     used_solver = solver(
         prb_model = prb,
         optimizer = opt,
-        provider = fake,
+        provider = gpu if solver in [HeaSolver, PenaltySolver] else aer,
         num_layers = num_layers,
         shots = 1024,
     )
@@ -91,7 +89,7 @@ if __name__ == '__main__':
             if solver in [HeaSolver, PenaltySolver]:
                 num_processes = 2**(4 - diff_level)
             else:
-                num_processes = num_processes_cpu
+                num_processes = num_processes_cpu // 2
 
             with ProcessPoolExecutor(max_workers=num_processes) as executor:
                 futures = []

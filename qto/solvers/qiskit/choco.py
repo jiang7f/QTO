@@ -17,7 +17,7 @@ class ChocoCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)
         self.inference_circuit = self.search_circuit()
-        iprint(self.model_option.Hd_bitstr_list)
+        # iprint(self.model_option.Hd_bitstr_list)
         # exit()
 
     def get_num_params(self):

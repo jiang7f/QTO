@@ -24,8 +24,8 @@ class QtoCircuit(QiskitCircuit[ChCircuitOption]):
         # if all(self.model_option.Hd_bitstr_list[1][:3] == self.model_option.Hd_bitstr_list[2][:3]):
         # self.model_option.Hd_bitstr_list[0] = self.model_option.Hd_bitstr_list[0] + self.model_option.Hd_bitstr_list[4]
         # self.model_option.Hd_bitstr_list = to_row_echelon_form(self.model_option.Hd_bitstr_list)
-        iprint(self.model_option.feasible_state)
-        iprint(self.model_option.Hd_bitstr_list)
+        # iprint(self.model_option.feasible_state)
+        # iprint(self.model_option.Hd_bitstr_list)
         # exit()
         self.inference_circuit = self.search_circuit()
 

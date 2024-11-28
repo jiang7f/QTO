@@ -32,7 +32,7 @@ class Provider(ABC):
         result = self.get_counts(qc, shots)  # 调用子类实现的 get_counts 方法
         end_time = time.perf_counter()  # 使用 perf_counter 记录结束时间
         self.quantum_circuit_execution_time += end_time - start_time  # 计算耗时
-        self.run_count += 1
+        self.run_count += shots
         return result
     
     def transpile(self, qc: QuantumCircuit):

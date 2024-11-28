@@ -6,13 +6,13 @@ from qto.model import LinearConstrainedBinaryOptimization as LcboModel
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
     ChocoSolver, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, ChocoSolverSearch, 
-    QtoSearchSolver, QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifySegmentedSolver, 
+    QtoSearchSolver, QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver, 
     AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,
 )
 
 num_case = 1
 # a, b = generate_scp(num_case,[(5, 5)])
-a, b = generate_flp(num_case, [(1, 2)], 1, 20)
+a, b = generate_flp(1, [(1, 2), (2, 3), (3, 3), (3, 4)], 1, 20)
 # print(a[0][0])
 # (1, [(2, 1), (3, 2), (3, 3), (4, 3), (4, 4)], 1, 20)
 
@@ -31,7 +31,7 @@ for i in range(num_case):
         optimizer=opt,  # 优化器
         provider=aer,  # 提供器（backend + 配对 pass_mannager ）
         num_layers=10,
-        shots=100024
+        shots=1000024
         # mcx_mode="linear",
     )
     # result = solver.solve()
