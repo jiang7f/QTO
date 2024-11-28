@@ -12,9 +12,9 @@ from qto.utils.linear_system import to_row_echelon_form, greedy_simplification_o
 from .circuit import QiskitCircuit
 from .provider import Provider
 from .circuit.circuit_components import obj_compnt, new_compnt
-from .qto_search import QtoSearchSolver
+from .explore.qto_search import QtoSearchSolver
 
-class QSDSNFCircuit(QiskitCircuit[ChCircuitOption]):
+class QtoSimplifyDiscardSegmentedFilterCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption, hlist: list[QuantumCircuit]):
         super().__init__(circuit_option, model_option)
         # iprint(self.model_option.feasible_state)
@@ -59,10 +59,12 @@ class QSDSNFCircuit(QiskitCircuit[ChCircuitOption]):
                 qc_temp.measure(range(num_qubits), range(num_qubits)[::-1])
                 # iprint(f'hdi depth: {qc_temp.depth()}')
                 qc_temp = self.circuit_option.provider.transpile(qc_temp)
-                # iprint(f'hdi depth after transpile: {qc_temp.depth()}')
-                origin = self.circuit_option.shots * value // total_count
-                count = self.circuit_option.provider.get_counts_with_time(qc_temp, shots=1024)
-                count = {k: round(v / 1024 * origin, 0) for k, v in count.items() if round(v / 1024 * origin, 0) > 0}
+                
+                count = self.circuit_option.provider.get_counts_with_time(qc_temp, shots=self.circuit_option.shots * value // total_count)
+                # origin = self.circuit_option.shots * value // total_count
+                # count = self.circuit_option.provider.get_counts_with_time(qc_temp, shots=1024)
+                # count = {k: round(v / 1024 * origin, 0) for k, v in count.items() if round(v / 1024 * origin, 0) > 0}
+
                 dicts.append(count)
             # iprint(f'this hdi depth: {qc_temp.depth()}')
 
@@ -70,19 +72,19 @@ class QSDSNFCircuit(QiskitCircuit[ChCircuitOption]):
             merged_dict = {}
             for d in dicts:
                 for key, value in d.items():
-                    # if all([np.dot([int(char) for char in key], constr[:-1]) == constr[-1] for constr in self.model_option.lin_constr_mtx]):
+                    if all([np.dot([int(char) for char in key], constr[:-1]) == constr[-1] for constr in self.model_option.lin_constr_mtx]):
                         merged_dict[key] = merged_dict.get(key, 0) + value
             # iprint(f'feasible counts: {merged_dict}')
             return merged_dict
 
 
-        register_counts = {''.join(map(str, self.model_option.feasible_state.astype(int))): 1}
+        register_counts = {''.join(map(str, self.model_option.feasible_state)): 1}
         for i, h_tau in enumerate(self.hlist):
             register_counts = run_and_pick(register_counts, h_tau, params[i])
 
         return register_counts
 
-class QSDSNFSolver(Solver):
+class QtoSimplifyDiscardSegmentedFilterSolver(Solver):
     def __init__(
         self,
         *,
@@ -144,7 +146,7 @@ class QSDSNFSolver(Solver):
     @property
     def circuit(self):
         if self._circuit is None:
-            self._circuit = QSDSNFCircuit(self.circuit_option, self.model_option, self.hlist)
+            self._circuit = QtoSimplifyDiscardSegmentedFilterCircuit(self.circuit_option, self.model_option, self.hlist)
         return self._circuit
 
 

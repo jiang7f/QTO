@@ -1,4 +1,4 @@
-name: choco_cpu
+name: qto_cpu
 channels:
   - defaults
 dependencies:

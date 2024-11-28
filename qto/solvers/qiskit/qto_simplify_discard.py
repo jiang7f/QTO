@@ -12,7 +12,7 @@ from qto.utils.linear_system import to_row_echelon_form, greedy_simplification_o
 from .circuit import QiskitCircuit
 from .provider import Provider
 from .circuit.circuit_components import obj_compnt, new_compnt
-from .qto_search import QtoSearchSolver
+from .explore.qto_search import QtoSearchSolver
 
 class QtoSimplifyDiscardCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):

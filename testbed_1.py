@@ -3,9 +3,9 @@ should_print = True
 from qto.model import LinearConstrainedBinaryOptimization as LcboModel
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
-    ChocoSolver, ChocoSolverSearch, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, QtoSimplifyDiscardSegmentedSolver,
-    QtoSimplifyDiscardSolver,
-    AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,
+    HeaSolver, PenaltySolver, CyclicSolver, ChocoSolver,
+    QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver, QtoSimplifyDiscardSegmentedFilterSolver,
+    AerProvider, AerGpuProvider, DdsimProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, 
 )
 
 # model ----------------------------------------------
@@ -30,11 +30,12 @@ print(f"optimize_cost: {optimize}\n\n")
 opt = CobylaOptimizer(max_iter=2)
 aer = DdsimProvider()
 gpu = AerGpuProvider()
+fake = FakeBrisbaneProvider()
 # opt = AdamOptimizer(max_iter=200)
-solver = HeaSolver(
+solver = QtoSimplifyDiscardSegmentedFilterSolver(
     prb_model=m,  # 问题模型
     optimizer=opt,  # 优化器
-    provider=gpu,  # 提供器（backend + 配对 pass_mannager ）
+    provider=fake,  # 提供器（backend + 配对 pass_mannager ）
     num_layers=1,
     # mcx_mode="linear",
 )

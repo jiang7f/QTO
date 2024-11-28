@@ -17,9 +17,9 @@ from qto.problems.set_cover_problem import generate_scp
 import numpy as np
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
-    ChocoSolver, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, QtoSimplifyDiscardSolver, QtoSimplifySolver, QtoSolver,
-    QtoSimplifyDiscardSegmentedSolver,
-    AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider
+    HeaSolver, PenaltySolver, CyclicSolver, ChocoSolver,
+    QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver, QtoSimplifyDiscardSegmentedFilterSolver,
+    AerProvider, AerGpuProvider, DdsimProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, 
 )
 from multiprocessing import Manager, Lock
 np.random.seed(0x7f)
@@ -30,7 +30,7 @@ new_path = script_path.replace('experiment', 'data')[:-3]
 new_dir = os.path.dirname(new_path)
 if not os.path.exists(new_dir):
     os.makedirs(new_dir)
-num_cases = 10
+num_cases = 20
 
 # 单次提交电路可能不能超过100，要分批
 flp_problems_pkg, flp_configs_pkg = generate_flp(num_cases, [(1, 2)], 5, 20)
@@ -47,9 +47,8 @@ with open(f"{new_path}.config", "w") as file:
         for problem in configs:
             file.write(f'{pkid}: {problem}\n')
 
-# solvers = [HeaSolver, PenaltySolver, ChocoSolver, NewSolver]
-# solvers = [HeaSolver, PenaltySolver, ChocoSolver, NewSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver]
-solvers = [HeaSolver, PenaltySolver, ChocoSolver, QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver]
+# solvers = [HeaSolver, PenaltySolver, ChocoSolver, QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver]
+solvers = [QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver]
 evaluation_metrics = ['best_solution_probs', 'in_constraints_probs', 'ARG', 'iteration_count', 'classcial', 'quantum', 'run_times']
 headers = ['pksid', 'pkid', 'pbid', 'layers', "variables", 'constraints', 'method'] + evaluation_metrics
 backends = [FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider]
@@ -138,6 +137,6 @@ if __name__ == '__main__':
                     for process in executor._processes.values():
                         os.kill(process.pid, signal.SIGTERM)
     print(f'Data has been written to {new_path}.csv')
-    print(time.perf_counter()- all_start_time)
+    print(time.perf_counter() - all_start_time)
 
 

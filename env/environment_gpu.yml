@@ -1,4 +1,4 @@
-name: choco_gpu
+name: qto_gpu
 channels:
   - defaults
 dependencies:
@@ -124,7 +124,7 @@ dependencies:
       - qiskit==1.2.4
       - qiskit-aer-gpu==0.15.1
       - qiskit-ibm-provider==0.11.0
-      - qiskit-ibm-runtime==0.25.0
+      - qiskit-ibm-runtime==0.33.2
       - ray==2.37.0
       - referencing==0.35.1
       - requests==2.32.3

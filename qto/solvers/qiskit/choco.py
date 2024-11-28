@@ -16,7 +16,7 @@ from qto.utils.gadget import pray_for_buddha, iprint
 class ChocoCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)
-        self.inference_circuit = self.search_circuit()
+        self.inference_circuit = self.create_circuit()
         # iprint(self.model_option.Hd_bitstr_list)
         # exit()
 
@@ -30,7 +30,7 @@ class ChocoCircuit(QiskitCircuit[ChCircuitOption]):
         collapse_state, probs = self.process_counts(counts)
         return collapse_state, probs
 
-    def search_circuit(self) -> QuantumCircuit:
+    def create_circuit(self) -> QuantumCircuit:
         mcx_mode = self.circuit_option.mcx_mode
         num_layers = self.circuit_option.num_layers
         num_qubits = self.model_option.num_qubits
