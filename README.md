@@ -1,38 +1,73 @@
-# Choco
+## Installation
 
-## 配置环境（进入env目录，二选一）
+You can install the virtual environment in two version, The CPU version is for simulation quantum circuit with CPU and the GPU version simulate quantum circuit by GPU.
 
-环境配置过程中会出现中间文件，不要动，结束后会自动删除，
-如果网络不好，GPU版本安装时间较长约，请耐性等待
-
-提示找不到包可尝试：
-禁用用户指定包：export PYTHONNOUSERSITE=1
-
-如果安装中断或失败，需要删除环境后重新安装
-conda remove -n choco_xxx --all
-
-### 仅CPU版本
-
-1. conda env create -f environment_cpu.yml
-2. conda activate choco_cpu
-3. pip install .
-
-### 支持GPU版本（需要GPU支持CUDA12）
-
-1. conda env create -f environment_gpu.yml
-2. conda activate choco_gpu
-3. pip install .
+### CPU version
+1. Install the envirnoment by conda
+```bash
+conda env create -f environment_cpu.yml
+```
+2. activate the installed virtual environment.
+```bash
+conda activate qto_cpu
+```
+If the installation is interrupted or fails, you need to delete the environment and reinstall: 
+```bash
+conda remove -n qto_cpu --all
+```
+3. install qto
+```bash
+pip install .
+```
 
 
-## 测试
+### GPU version （need the support of CUDA12）
+1. Install the envirnoment by conda
+```bash
+conda env create -f environment_gpu.yml
+```
+2. activate the installed virtual environment.
+```bash
+conda activate qto_gpu
+```
+If the nextwork is poor, the installation time for GPU will be longer, please be patient.
+When the installation is interrupted or fails, you need to delete the environment and reinstall: 
+```bash
+conda remove -n qto_gpu --all
+```
+3. install qto
+```bash
+pip install .
+```
 
-根据按装环境测试运行对应测试文件:
-.testbed_cpu.py
-.testbed_gpu.py
 
-看到 "Environment configuration is successful!" 即表示配置成功
 
-配置失败考虑：
-1. 终端是否正确activate对应conda环境
-2. 是否在切换后执行 pip install . 安装chocoq库
-3. python执行环境是否选择对应conda环境
+## Test for installation
+Run corresponding test files according to the installation version:
+
+```bash
+python testbed_cpu.py
+```
+for CPU version or 
+```bash
+python testbed_gpu.py
+```
+for GPU version.
+
+If you see "Environment configuration is successful!" it means the installation is successful.
+
+If the installation fails, you may consider:
+
+1. Ensure that the correct conda environment is activated in the terminal.
+2. After switching environments, execute `pip install .` under `qto-Q/` to install the qtoq package.
+3. Make sure the Python execution environment is set to the corresponding conda environment. you may disable the user site by 
+```bash
+ export PYTHONNOUSERSITE=1
+```
+
+## Reproduce the experiments by Notebooks
+1. [implementations/0_test.ipynb](implementations/0_test.ipynb) - Custom optimization problem and solve it.
+
+
+
+2. [implementations/1_table.ipynb](implementations/1_table.ipynb) - Table 1 in the paper.

@@ -1,6 +1,6 @@
 from scipy.optimize import minimize
 # import numpy as np
-# import csv
+import csv
 # import os
 
 from qto.utils import iprint #, read_last_row, get_main_file_info, create_directory_if_not_exists
@@ -9,9 +9,11 @@ from ..options.optimizer_option import CobylaOptimizerOption as OptimizerOption
 
 
 class CobylaOptimizer(Optimizer):
-    def __init__(self, *, max_iter: int = 50):
+    def __init__(self, *, max_iter: int = 50, mess = None):
         super().__init__()
         self.optimizer_option: OptimizerOption = OptimizerOption(max_iter=max_iter)
+        self.cost_history = []  # 保存 cost_history 属性
+        self.mess = mess
         # optimizer_option.opt_id
 
     def minimize(self):
@@ -26,19 +28,35 @@ class CobylaOptimizer(Optimizer):
         def callback(params):
             nonlocal iteration_count
             iteration_count += 1
-            # print(f"iteration {iteration_count}, result: {cost_func(params)}")
+
+            cost = cost_func(params)
+            self.cost_history.append(cost)
+
             if iteration_count % 10 == 0:
-                iprint(f"iteration {iteration_count}, result: {cost_func(params)}")
+                iprint(f"iteration {iteration_count}, result: {cost}")
 
         result = minimize(
             cost_func_trans, 
             params, 
             method='COBYLA', 
-            options={'maxiter': optimizer_option.max_iter}, 
+            options={'maxiter': optimizer_option.max_iter, 'tol': 1e-50}, 
             callback=callback
         )
+        if self.mess:
+            self.save_cost_history_to_csv()
 
         return result.x, iteration_count
+    
+    def save_cost_history_to_csv(self):
+        filename = self.mess + ".csv"
+        # filename = self.mess + ".csv"
+        # 将 cost_history 保存到 CSV 文件
+        with open(filename, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Iteration', 'Cost'])  # 写入标题行
+            for i, cost in enumerate(self.cost_history):
+                writer.writerow([i+1, cost])  # 写入每一行的数据
+
 
 
 

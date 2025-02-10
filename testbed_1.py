@@ -32,10 +32,10 @@ aer = DdsimProvider()
 gpu = AerGpuProvider()
 fake = FakeBrisbaneProvider()
 # opt = AdamOptimizer(max_iter=200)
-solver = QtoSimplifyDiscardSegmentedFilterSolver(
+solver = QtoSimplifyDiscardSolver(
     prb_model=m,  # 问题模型
     optimizer=opt,  # 优化器
-    provider=fake,  # 提供器（backend + 配对 pass_mannager ）
+    provider=aer,  # 提供器（backend + 配对 pass_mannager ）
     num_layers=1,
     # mcx_mode="linear",
 )
@@ -45,3 +45,4 @@ result = solver.solve()
 eval = solver.evaluation()
 print(result)
 print(eval)
+print(opt.cost_history)

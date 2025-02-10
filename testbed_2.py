@@ -1,4 +1,4 @@
-# should_print = True
+should_print = True
 
 from qto.problems.facility_location_problem import generate_flp
 from qto.problems.set_cover_problem import generate_scp
@@ -7,15 +7,14 @@ from qto.problems.graph_coloring_problem import generate_gcp
 from qto.model import LinearConstrainedBinaryOptimization as LcboModel
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
-    ChocoSolver, CyclicSolver, HeaSolver, PenaltySolver, NewSolver, NewXSolver, ChocoSolverSearch, ChocoInterMeasSolver,
-    QtoSearchSolver, QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedFilterSolver,
-    QtoMeasureSolver, QtoSdCollapseSolver, 
-    AerGpuProvider, AerProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, DdsimProvider,
+    HeaSolver, PenaltySolver, CyclicSolver, ChocoSolver,
+    QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver, QtoSimplifyDiscardSegmentedFilterSolver,
+    AerProvider, AerGpuProvider, DdsimProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, 
 )
 
 num_case = 5
 # a, b = generate_scp(num_case,[(3, 3)])
-a, b = generate_flp(num_case, [(1, 2)], 1, 20)
+a, b = generate_flp(num_case, [(2, 3)], 1, 20)
 # a, b = generate_kpp(num_case, [(5, 3, 4)], 1, 20)
 # a, b = generate_gcp(num_case, [(3, 2)])
 # print(a[0][0])
@@ -32,11 +31,11 @@ for i in range(num_case):
     fake = FakeKyivProvider()
     gpu = AerGpuProvider()
     a[0][i].set_penalty_lambda(200)
-    solver = QtoSimplifyDiscardSegmentedFilterSolver(
+    solver = ChocoSolver(
         prb_model=a[0][i],  # 问题模型
         optimizer=opt,  # 优化器
         provider=aer,  # 提供器（backend + 配对 pass_mannager ）
-        num_layers=3,
+        num_layers=50,
         shots=1024,
         # mcx_mode="linear",
     )
@@ -54,3 +53,4 @@ for i in range(num_case):
     # print(counter.total_run_time )
     print("classical", t1)
     print("quantum", t2)
+    print(opt.cost_history)
