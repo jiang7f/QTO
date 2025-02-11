@@ -18,7 +18,7 @@ random.seed(0x7f)
 
 num_case = 1
 # a, b = generate_scp(num_case,[(3, 3)])
-a, b = generate_flp(num_case, [(1, 2)], 1, 20)
+a, b = generate_flp(num_case, [(3, 4)], 1, 20)
 # a, b = generate_kpp(num_case, [(5, 3, 4)], 1, 20)
 # a, b = generate_gcp(num_case, [(3, 2)])
 # print(a[0][0])
@@ -30,12 +30,12 @@ best_lst = []
 arg_lst = []
 
 for i in range(num_case):
-    opt = CobylaOptimizer(max_iter=2)
+    opt = CobylaOptimizer(max_iter=50, save_address="save")
     aer = DdsimProvider()
     fake = FakeKyivProvider()
     gpu = AerGpuProvider()
     a[0][i].set_penalty_lambda(200)
-    solver = ChocoSegmentedSolver(
+    solver = ChocoSolver(
         prb_model=a[0][i],  # 问题模型
         optimizer=opt,  # 优化器
         provider=aer,  # 提供器（backend + 配对 pass_mannager ）

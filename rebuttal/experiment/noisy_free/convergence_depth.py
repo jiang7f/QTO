@@ -58,7 +58,7 @@ headers = ['pkid', 'pbid', 'layers', "variables", 'constraints', 'method'] + eva
 
 
 def process_layer(prb, layer, solver, pkid):
-    opt = CobylaOptimizer(max_iter=300, mess=f"./depth_loss/{solver.__name__}_{pkid}")
+    opt = CobylaOptimizer(max_iter=300, save_address=f"./depth_loss/{solver.__name__}_{pkid}")
     aer = DdsimProvider()
     gpu = AerGpuProvider()
     prb.set_penalty_lambda(400)
