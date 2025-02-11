@@ -6,7 +6,7 @@ from qiskit.dagcircuit import DAGOpNode
 from qiskit import transpile
 from qiskit_aer import AerSimulator
 from qiskit_ibm_runtime.fake_provider import FakeKyoto, FakeKyiv, FakeQuebec, FakeAlmadenV2, FakeBelemV2, FakeSantiagoV2
-from .latency import Latency
+from qto.solvers.qiskit.circuit_analyzer.latency import Latency
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 
 
@@ -62,8 +62,7 @@ class Metrics:
             self._latency_dict = {q: 0 for q in self._qargs}
             for gate in self._dagcircuit.topological_op_nodes():
                 q_indexes = [q._index for q in gate.qargs]
-                if gate.op.name != 'measure':
-                    max_latency = max([self._latency_dict.get(q,0) for q in gate.qargs]) + self._latency.calculate(gate.op.name, q_indexes)
+                max_latency = max([self._latency_dict.get(q,0) for q in gate.qargs]) + self._latency.calculate(gate.op.name, q_indexes)
                 for q in gate.qargs:
                     self._latency_dict[q] = max_latency
         return self._latency_dict
@@ -85,9 +84,11 @@ if __name__ == '__main__':
     # 创建一个量子电路
     qc = QuantumCircuit(4)
     qc.rz(1, 0)
-    qc.rz(1, 1)
     qc.ecr(1, 0)
-    qc.ecr(0, 1)
+    qc.measure_all()
+    qc.reset(1)
+    qc.reset(3)
+    qc.reset(3)
     # # 创建 Feature 实例，并传入 FakeQuebec 后端对象
     metrics = Metrics(qc, FakeQuebec())
     print(f'width: {metrics.width}')
@@ -99,7 +100,6 @@ if __name__ == '__main__':
     print(f'size: {metrics.size}')
     print(f'latency_all(): {metrics.latency_all}')
     print(f'get_depth_without_one_qubit_gate(): {metrics.get_depth_without_one_qubit_gate()}')
-    print(metrics.latency_estimation)
     # def qubit_utilizztion(self): 
     #     ### caculate the latency of whole circuits
     #     gate_latency = {q: 0 for q in self._qargs}
