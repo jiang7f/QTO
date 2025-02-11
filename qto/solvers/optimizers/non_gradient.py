@@ -43,6 +43,7 @@ class CobylaOptimizer(Optimizer):
             if iteration_count % 10 == 0:
                 iprint(f"iteration {iteration_count}, result: {cost}")
 
+
         result = minimize(
             cost_func_trans, 
             params, 
