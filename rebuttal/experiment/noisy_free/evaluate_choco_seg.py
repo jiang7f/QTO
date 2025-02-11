@@ -14,7 +14,7 @@ from qto.problems.set_cover_problem import generate_scp
 import numpy as np
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
-    HeaSolver, PenaltySolver, CyclicSolver, ChocoSolver,
+    HeaSolver, PenaltySolver, CyclicSolver, ChocoSolver, ChocoSegmentedSolver,
     QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver, QtoSimplifyDiscardSegmentedFilterSolver,
     AerProvider, AerGpuProvider, DdsimProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, 
 )
@@ -49,7 +49,7 @@ with open(f"{new_path}.config", "w") as file:
         for problem in configs:
             file.write(f'{pkid}: {problem}\n')
 
-solvers = [QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver]
+solvers = [ChocoSolver, ChocoSegmentedSolver]
 evaluation_metrics = ['best_solution_probs', 'in_constraints_probs', 'ARG', 'iteration_count', 'classcial', 'quantum', 'run_times']
 headers = ['pkid', 'pbid', 'layers', "variables", 'constraints', 'method'] + evaluation_metrics
 

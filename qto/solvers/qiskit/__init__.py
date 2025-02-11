@@ -14,6 +14,8 @@ from .hea import HeaSolver
 from .penalty import PenaltySolver
 from .cyclic import CyclicSolver
 from .choco import ChocoSolver
+from .choco import ChocoSolver
+from .choco_segmented import ChocoSegmentedSolver
 from .choco_inter_meas import ChocoInterMeasSolver
 
 from .qto import QtoSolver

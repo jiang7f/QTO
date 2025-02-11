@@ -7,38 +7,31 @@ from qto.solvers.optimizers import Optimizer
 from qto.solvers.options import CircuitOption, OptimizerOption, ModelOption
 from qto.solvers.options.circuit_option import ChCircuitOption
 from qto.model import LinearConstrainedBinaryOptimization as LcboModel
-from qto.utils import iprint
-from qto.utils.linear_system import to_row_echelon_form, greedy_simplification_of_transition_Hamiltonian
+
 from .circuit import QiskitCircuit
 from .provider import Provider
-from .circuit.circuit_components import obj_compnt, new_compnt
-from .explore.qto_search import QtoSearchSolver
+from .circuit.circuit_components import obj_compnt, commute_compnt
+from qto.utils.gadget import pray_for_buddha, iprint
 
-class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
-    def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption, hlist: list[QuantumCircuit]):
+class ChocoSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
+    def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)
-        # iprint(self.model_option.feasible_state)
+        self.inference_circuit = self.create_circuit()
         # iprint(self.model_option.Hd_bitstr_list)
         # exit()
-        self.inference_circuit = self.create_circuit()
-        self.hlist = hlist
 
     def get_num_params(self):
-        return len(self.hlist)
+        return self.circuit_option.num_layers * 2
     
     def inference(self, params):
         counts = self.segmented_excute_circuit(params)
         collapse_state, probs = self.process_counts(counts)
         return collapse_state, probs
     
-    # @property
-    # def inference_circuit(self):   
-    #     raise Exception("This circuit is not yet suitable for analysis")
-    
     def segmented_excute_circuit(self, params) -> QuantumCircuit:
         mcx_mode = self.circuit_option.mcx_mode
         num_qubits = self.model_option.num_qubits
-        # self.qc = self.circuit_option.provider.transpile(qc)
+        self.generate_layer_circuit_list()
 
         def run_and_pick(dict:dict, hdi_qc: QuantumCircuit, param):
             # iprint("--------------")
@@ -61,7 +54,7 @@ class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
                 qc_temp.compose(qc_add, inplace=True)
                 qc_temp.measure(range(num_qubits), range(num_qubits)[::-1])
 
-                # qc_temp = self.circuit_option.provider.transpile(qc_temp)
+                qc_temp = self.circuit_option.provider.transpile(qc_temp)
 
                 # iprint(f'hdi depth: {qc_temp.depth()}')
 
@@ -82,86 +75,67 @@ class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
             # iprint(f'feasible counts: {merged_dict}')
             return merged_dict
 
-
         register_counts = {''.join(map(str, self.model_option.feasible_state)): 1}
-        for i, h_tau in enumerate(self.hlist):
-            register_counts = run_and_pick(register_counts, h_tau, params[i])
-
+        for i, layer_circuit in enumerate(self.layer_circuit_list):
+            register_counts = run_and_pick(register_counts, layer_circuit, params[i])
+            
         return register_counts
 
-class QtoSimplifyDiscardSegmentedSolver(Solver):
+    def generate_layer_circuit_list(self) -> QuantumCircuit:
+        mcx_mode = self.circuit_option.mcx_mode
+        num_layers = self.circuit_option.num_layers
+        num_qubits = self.model_option.num_qubits
+        if mcx_mode == "constant":
+            qc = QuantumCircuit(num_qubits + 2, num_qubits)
+            anc_idx = [num_qubits, num_qubits + 1]
+        elif mcx_mode == "linear":
+            qc = QuantumCircuit(2 * num_qubits, num_qubits)
+            anc_idx = list(range(num_qubits, 2 * num_qubits))
+
+        Ho_params = [Parameter(f"Ho_params[{i}]") for i in range(num_layers)]
+        Hd_params = [Parameter(f"Hd_params[{i}]") for i in range(num_layers)]
+
+        self.layer_circuit_list = []
+        for layer in range(num_layers):
+            qc_temp = qc.copy()
+            obj_compnt(qc_temp, Ho_params[layer], self.model_option.obj_dct)
+            self.layer_circuit_list.append(qc_temp)
+
+            qc_temp = qc.copy()
+            commute_compnt(
+                qc_temp,
+                Hd_params[layer],
+                self.model_option.Hd_bitstr_list,
+                anc_idx,
+                mcx_mode,
+            )
+            self.layer_circuit_list.append(qc_temp)
+    
+
+
+class ChocoSegmentedSolver(Solver):
     def __init__(
         self,
         *,
         prb_model: LcboModel,
         optimizer: Optimizer,
         provider: Provider,
-        num_layers: int = 1,
+        num_layers: int,
         shots: int = 1024,
         mcx_mode: str = "constant",
     ):
         super().__init__(prb_model, optimizer)
-        # 根据排列理论，直接赋值
-        num_layers = len(self.model_option.Hd_bitstr_list)
-        # 贪心减少非零元 优化跃迁哈密顿量
-        self.model_option.Hd_bitstr_list = greedy_simplification_of_transition_Hamiltonian(self.model_option.Hd_bitstr_list)
-        
         self.circuit_option = ChCircuitOption(
             provider=provider,
             num_layers=num_layers,
             shots=shots,
             mcx_mode=mcx_mode,
         )
-        search_solver = QtoSearchSolver(
-            prb_model=prb_model,
-            optimizer=optimizer,
-            provider=provider,
-            num_layers=num_layers,
-            shots=shots,
-            mcx_mode=mcx_mode
-        )
-        # self.hlist = search_solver.hlist[:1]
-
-        # 编译过的transpiled_hlist \O/
-        hlist = search_solver.transpiled_hlist
-        _, set_basis_lists, _ = search_solver.search()
-
-        min_id = 0
-        max_id = 0
-
-        useful_idx = []
-        already_set = set()
-        if len(set_basis_lists[0]) != 1:
-            useful_idx.append(0)
-
-        already_set.update(set_basis_lists[0])
-
-        for i in range(1, len(set_basis_lists)):
-            if len(set_basis_lists[i - 1]) == 1 and min_id == i - 1:
-                min_id = i
-            if set_basis_lists[i] - already_set:
-                already_set.update(set_basis_lists[i])
-                max_id = i
-        iprint(f'range({min_id}, {max_id})')
-        
-        # import time
-        # solver_end_time = time.perf_counter()  # 使用 perf_counter 记录结束时间
-        # self.end_to_end_time = solver_end_time - self.solver_start_time
-        # print(self.end_to_end_time)
-        # print(self.circuit_option.provider.quantum_circuit_execution_time)
-        # print(self.time_analyze())
-        # exit()
-
-        self.hlist = []
-        hlist_len = len(hlist)
-        for i in range(min_id, max_id):
-            self.hlist.append(hlist[i % hlist_len])
-
 
     @property
     def circuit(self):
         if self._circuit is None:
-            self._circuit = QtoSimplifyDiscardSegmentedCircuit(self.circuit_option, self.model_option, self.hlist)
+            self._circuit = ChocoSegmentedCircuit(self.circuit_option, self.model_option)
         return self._circuit
 
 

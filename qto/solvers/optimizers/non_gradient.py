@@ -12,8 +12,8 @@ class CobylaOptimizer(Optimizer):
     def __init__(self, *, max_iter: int = 50, mess = None):
         super().__init__()
         self.optimizer_option: OptimizerOption = OptimizerOption(max_iter=max_iter)
-        self.cost_history = []  # 保存 cost_history 属性
-        self.mess = mess
+        # self.cost_history = []  # 保存 cost_history 属性
+        # self.mess = mess
         # optimizer_option.opt_id
 
     def minimize(self):
@@ -29,11 +29,11 @@ class CobylaOptimizer(Optimizer):
             nonlocal iteration_count
             iteration_count += 1
 
-            cost = cost_func(params)
-            self.cost_history.append(cost)
+            # cost = cost_func(params)
+            # self.cost_history.append(cost)
 
-            if iteration_count % 10 == 0:
-                iprint(f"iteration {iteration_count}, result: {cost}")
+            # if iteration_count % 10 == 0:
+            #     iprint(f"iteration {iteration_count}, result: {cost}")
 
         result = minimize(
             cost_func_trans, 
@@ -42,8 +42,8 @@ class CobylaOptimizer(Optimizer):
             options={'maxiter': optimizer_option.max_iter, 'tol': 1e-50}, 
             callback=callback
         )
-        if self.mess:
-            self.save_cost_history_to_csv()
+        # if self.mess:
+        #     self.save_cost_history_to_csv()
 
         return result.x, iteration_count
     

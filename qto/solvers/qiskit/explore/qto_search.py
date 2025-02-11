@@ -114,7 +114,7 @@ class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
                 anc_idx,
                 mcx_mode,
                 num_qubits,
-                self.circuit_option.shots * 10,
+                self.circuit_option.shots,
                 self.circuit_option.provider,
             )
             num_basis_lists.extend(num_basis_list)
@@ -127,6 +127,7 @@ class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
                 already_set.update(this_time)
             else:
                 break
+            
         return num_basis_lists, set_basis_lists, depth_lists
 
 
@@ -148,8 +149,10 @@ class QtoSearchSolver(Solver):
         # need to refix
         from qto.solvers.qiskit import DdsimProvider
 
+        self.original_provider = provider
+        self.ddsim_provider = DdsimProvider()
         self.circuit_option = ChCircuitOption(
-            provider=DdsimProvider(),
+            provider=self.ddsim_provider,
             num_layers=num_layers,
             shots=shots,
             mcx_mode=mcx_mode,
@@ -162,6 +165,7 @@ class QtoSearchSolver(Solver):
         return self._circuit
 
     def search(self):
+        self.original_provider.quantum_circuit_execution_time = self.ddsim_provider.quantum_circuit_execution_time
         return self.circuit.result
     
     @property

@@ -39,12 +39,12 @@ def search_evolution_space_low_cost(qc: QuantumCircuit, params, Hd_bitstr_list, 
     set_basis_list = []
     depth_list = []
     from qiskit_aer import AerSimulator
-    from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
+    # from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
     from qiskit_ibm_runtime import SamplerV2 as Sampler
     from qiskit.quantum_info import Statevector
 
-    CORE_BASIS_GATES = ["measure", "cx", "id", "rz", "sx", "x"]
-    generate_preset_pass_manager(optimization_level=2, basis_gates=CORE_BASIS_GATES,)
+    # CORE_BASIS_GATES = ["measure", "cx", "id", "rz", "sx", "x"]
+    # generate_preset_pass_manager(optimization_level=2, basis_gates=CORE_BASIS_GATES)
     
     for i,hdi_vct in enumerate(Hd_bitstr_list):
         nonzero_indices = np.nonzero(hdi_vct)[0].tolist()

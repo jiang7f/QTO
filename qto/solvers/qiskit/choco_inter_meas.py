@@ -14,6 +14,7 @@ from .provider import Provider
 from .circuit.hdi_decompose import driver_component
 from .circuit.circuit_components import obj_compnt
 
+# 废稿
 class ChocoInterMeasCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
         super().__init__(circuit_option, model_option)

@@ -3,6 +3,7 @@ from typing import Dict, Union, Callable
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend, BackendV2
 from qiskit.transpiler import PassManager
+from qiskit import transpile
 import time
 
 CORE_BASIS_GATES = ["measure", "cx", "id", "rz", "sx", "x"]
@@ -37,7 +38,8 @@ class Provider(ABC):
         return result
     
     def transpile(self, qc: QuantumCircuit):
-        return self.pass_manager.run(qc)
+        return transpile(qc, self.backend)
+        # return self.pass_manager.run(qc)
 
 
 class CustomProvider(Provider):
