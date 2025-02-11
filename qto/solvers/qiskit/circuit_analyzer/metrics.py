@@ -20,7 +20,7 @@ class Metrics:
             circuit (QuantumCircuit): instance of circuit
             backend (_type_): the qpu backend in IBM backend object, contains the information of a qpu
         """
-        if backend is None or backend.name == 'aer_simulator':
+        if backend is None or 'aer_simulator' in backend.name:
             self._circuit = circuit
         else:
             pass_manager = generate_preset_pass_manager(
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     qc.reset(3)
     qc.reset(3)
     # # 创建 Feature 实例，并传入 FakeQuebec 后端对象
-    metrics = Metrics(qc, FakeQuebec())
+    metrics = Metrics(qc, FakeKyiv())
     print(f'width: {metrics.width}')
     print(f'depth: {metrics.depth}')
     print(f'one_qubit_gates: {metrics.one_qubit_gates}')

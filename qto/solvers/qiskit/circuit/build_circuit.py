@@ -3,6 +3,7 @@ from typing import Dict, Tuple, List, Generic, TypeVar
 from qiskit import QuantumCircuit
 from ..circuit_analyzer import Metrics
 from ...options import CircuitOption, ModelOption
+from qiskit_ibm_runtime.fake_provider import FakeKyoto, FakeKyiv, FakeQuebec, FakeAlmadenV2, FakeBelemV2, FakeSantiagoV2
 
 T = TypeVar("T", bound=CircuitOption)
 
@@ -47,7 +48,10 @@ class QiskitCircuit(ABC, Generic[T]):
     @property
     def analyzer(self) -> Metrics:
         if self._analyzer is None:
-            self._analyzer = Metrics(self.inference_circuit, self.circuit_option.provider.backend)
+            if "simulator" in self.circuit_option.provider.backend.name:
+                self._analyzer =  Metrics(self.inference_circuit,FakeQuebec() )
+            else: 
+                self._analyzer = Metrics(self.inference_circuit, self.circuit_option.provider.backend)
                 
         return self._analyzer
     
