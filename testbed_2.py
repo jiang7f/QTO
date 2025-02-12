@@ -8,7 +8,7 @@ from qto.model import LinearConstrainedBinaryOptimization as LcboModel
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
     HeaSolver, PenaltySolver, CyclicSolver, ChocoSolver, ChocoSegmentedSolver,
-    QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver, QtoSimplifyDiscardSegmentedFilterSolver,
+    QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver, QtoSimplifyDiscardSegmentedFilterSolver, QtoSimplifyDiscardSegmentedCustomSolver,
     AerProvider, AerGpuProvider, DdsimProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, 
 )
 import numpy as np
@@ -18,7 +18,7 @@ random.seed(0x7f)
 
 num_case = 1
 # a, b = generate_scp(num_case,[(3, 3)])
-a, b = generate_flp(num_case, [(5, 5)], 1, 20)
+a, b = generate_flp(num_case, [(2, 2)], 1, 20)
 # a, b = generate_kpp(num_case, [(5, 3, 4)], 1, 20)
 # a, b = generate_gcp(num_case, [(3, 2)])
 # print(a[0][0])
@@ -30,17 +30,18 @@ best_lst = []
 arg_lst = []
 
 for i in range(num_case):
-    opt = CobylaOptimizer(max_iter=50, save_address="save")
+    opt = CobylaOptimizer(max_iter=300, save_address="save")
     aer = DdsimProvider()
     fake = FakeKyivProvider()
     gpu = AerGpuProvider()
     a[0][i].set_penalty_lambda(200)
-    solver = ChocoSolver(
+    solver = QtoSimplifyDiscardSegmentedCustomSolver(
         prb_model=a[0][i],  # 问题模型
         optimizer=opt,  # 优化器
         provider=aer,  # 提供器（backend + 配对 pass_mannager ）
         num_layers=5,
         shots=1024,
+        num_segments=10,
         # mcx_mode="linear",
     )
     result = solver.solve()

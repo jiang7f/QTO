@@ -136,7 +136,10 @@ class QtoSimplifyDiscardSegmentedFilterSolver(Solver):
             if set_basis_lists[i] - already_set:
                 already_set.update(set_basis_lists[i])
                 max_id = i
+
+        max_id += 1 # 左闭右开+1
         iprint(f'range({min_id}, {max_id})')
+
         self.hlist = []
         hlist_len = len(hlist)
         for i in range(min_id, max_id):

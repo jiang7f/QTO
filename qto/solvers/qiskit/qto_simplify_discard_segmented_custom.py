@@ -14,14 +14,16 @@ from .provider import Provider
 from .circuit.circuit_components import obj_compnt, new_compnt
 from .explore.qto_search import QtoSearchSolver
 
-class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
-    def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption, hlist: list[QuantumCircuit]):
+class QtoSimplifyDiscardSegmentedCustomCircuit(QiskitCircuit[ChCircuitOption]):
+    def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption, hlist: list[QuantumCircuit], segmentation):
         super().__init__(circuit_option, model_option)
         # iprint(self.model_option.feasible_state)
         # iprint(self.model_option.Hd_bitstr_list)
         # exit()
         self.inference_circuit = self.create_circuit()
         self.hlist = hlist
+        self.segments_list = segmentation[0]   #分割方案 [[1, 2], [3, 4]]
+        self.segments_index = segmentation[1]  # 分割的下表索引 [(0, 2), (2, 4)]
 
     def get_num_params(self):
         return len(self.hlist)
@@ -40,7 +42,7 @@ class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
         num_qubits = self.model_option.num_qubits
         # self.qc = self.circuit_option.provider.transpile(qc)
 
-        def run_and_pick(dict:dict, hdi_qc: QuantumCircuit, param):
+        def run_and_pick(dict:dict, hdi_qc_list: list[QuantumCircuit], params):
             # iprint("--------------")
             # iprint(f'input dict: {dict}')
             dicts = []
@@ -56,9 +58,10 @@ class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
                         qc_temp.x(idx)
 
                 # qc_temp = self.circuit_option.provider.transpile(qc_temp)
+                for idx, hdi_qc in enumerate(hdi_qc_list):
+                    qc_add = hdi_qc.assign_parameters([params[idx]])
+                    qc_temp.compose(qc_add, inplace=True)
 
-                qc_add = hdi_qc.assign_parameters([param])
-                qc_temp.compose(qc_add, inplace=True)
                 qc_temp.measure(range(num_qubits), range(num_qubits)[::-1])
 
                 # qc_temp = self.circuit_option.provider.transpile(qc_temp)
@@ -84,12 +87,12 @@ class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
 
 
         register_counts = {''.join(map(str, self.model_option.feasible_state)): 1}
-        for i, h_tau in enumerate(self.hlist):
-            register_counts = run_and_pick(register_counts, h_tau, params[i])
+        for h_tau_list, (start_idx, end_idx) in zip(self.segments_list, self.segments_index):
+            register_counts = run_and_pick(register_counts, h_tau_list, params[start_idx: end_idx])
 
         return register_counts
 
-class QtoSimplifyDiscardSegmentedSolver(Solver):
+class QtoSimplifyDiscardSegmentedCustomSolver(Solver):
     def __init__(
         self,
         *,
@@ -99,6 +102,7 @@ class QtoSimplifyDiscardSegmentedSolver(Solver):
         num_layers: int = 1,
         shots: int = 1024,
         mcx_mode: str = "constant",
+        num_segments = 1,
     ):
         super().__init__(prb_model, optimizer)
         # 根据排列理论，直接赋值
@@ -106,6 +110,8 @@ class QtoSimplifyDiscardSegmentedSolver(Solver):
         # 贪心减少非零元 优化跃迁哈密顿量
         self.model_option.Hd_bitstr_list = greedy_simplification_of_transition_Hamiltonian(self.model_option.Hd_bitstr_list)
         
+        self.num_segments = num_segments
+
         self.circuit_option = ChCircuitOption(
             provider=provider,
             num_layers=num_layers,
@@ -120,6 +126,7 @@ class QtoSimplifyDiscardSegmentedSolver(Solver):
             shots=shots,
             mcx_mode=mcx_mode
         )
+        
         # self.hlist = search_solver.hlist[:1]
 
         # 编译过的transpiled_hlist \O/
@@ -142,28 +149,45 @@ class QtoSimplifyDiscardSegmentedSolver(Solver):
             if set_basis_lists[i] - already_set:
                 already_set.update(set_basis_lists[i])
                 max_id = i
-
+                
         max_id += 1 # 左闭右开+1
         iprint(f'range({min_id}, {max_id})')
-        
-        # import time
-        # solver_end_time = time.perf_counter()  # 使用 perf_counter 记录结束时间
-        # self.end_to_end_time = solver_end_time - self.solver_start_time
-        # print(self.end_to_end_time)
-        # print(self.circuit_option.provider.quantum_circuit_execution_time)
-        # print(self.time_analyze())
-        # exit()
+
+        # 保证自定义段数 可以被满足
+        assert num_segments >= 1 and num_segments <= max_id - min_id
+
+        def split_list_into_segments(hlist, num_segments):
+            n = len(hlist)
+            # 每段的基本长度
+            segment_length = n // num_segments
+            # 剩余的元素数量
+            remainder = n % num_segments
+            
+            segments = []
+            index_list = []
+            start = 0
+
+            for i in range(num_segments):
+                # 如果当前段应该多分配一个元素（在余数范围内）
+                end = start + segment_length + (1 if i < remainder else 0)
+                segments.append(hlist[start:end])
+                index_list.append((start, end))
+                start = end
+            
+            return segments, index_list
 
         self.hlist = []
         hlist_len = len(hlist)
         for i in range(min_id, max_id):
             self.hlist.append(hlist[i % hlist_len])
 
+        self.segmentation = split_list_into_segments(self.hlist, num_segments)
+
 
     @property
     def circuit(self):
         if self._circuit is None:
-            self._circuit = QtoSimplifyDiscardSegmentedCircuit(self.circuit_option, self.model_option, self.hlist)
+            self._circuit = QtoSimplifyDiscardSegmentedCustomCircuit(self.circuit_option, self.model_option, self.hlist, self.segmentation)
         return self._circuit
 
 

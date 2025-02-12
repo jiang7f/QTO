@@ -114,9 +114,11 @@ class QtoSimplifyDiscardSolver(Solver):
             if set_basis_lists[i] - already_set:
                 already_set.update(set_basis_lists[i])
                 max_id = i
+        
         iprint(f'range({min_id}, {max_id})')
         Hd_bitstr_list = np.tile(self.model_option.Hd_bitstr_list, (num_layers, 1))
-        self.model_option.Hd_bitstr_list = [item for i, item in enumerate(Hd_bitstr_list) if i >= min_id and i < max_id]
+        self.model_option.Hd_bitstr_list = [item for i, item in enumerate(Hd_bitstr_list) if i >= min_id and i <= max_id]
+        # print(self.model_option.Hd_bitstr_list)
 
 
     @property
