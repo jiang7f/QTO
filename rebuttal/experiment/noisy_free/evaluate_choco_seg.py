@@ -15,7 +15,7 @@ import numpy as np
 from qto.solvers.optimizers import CobylaOptimizer, AdamOptimizer
 from qto.solvers.qiskit import (
     HeaSolver, PenaltySolver, CyclicSolver, ChocoSolver, ChocoSegmentedSolver,
-    QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver, QtoSimplifyDiscardSegmentedFilterSolver,
+    QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver, QtoSimplifyDiscardSegmentedFilterSolver, QtoSimplifyDiscardSegmentedCustomSolver,
     AerProvider, AerGpuProvider, DdsimProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, 
 )
 
@@ -49,7 +49,7 @@ with open(f"{new_path}.config", "w") as file:
         for problem in configs:
             file.write(f'{pkid}: {problem}\n')
 
-solvers = [ChocoSolver, ChocoSegmentedSolver]
+solvers = [ChocoSolver, ChocoSegmentedSolver, QtoSimplifyDiscardSegmentedCustomSolver]
 evaluation_metrics = ['best_solution_probs', 'in_constraints_probs', 'ARG', 'iteration_count', 'classcial', 'quantum', 'run_times']
 headers = ['pkid', 'pbid', 'layers', "variables", 'constraints', 'method'] + evaluation_metrics
 
@@ -65,6 +65,7 @@ def process_layer(prb, num_layers, solver):
         provider = gpu if solver in [HeaSolver, PenaltySolver] else aer,
         num_layers = num_layers,
         shots = 1024,
+        # num_segments=10,
     )
     used_solver.solve()
     eval = used_solver.evaluation()

@@ -102,7 +102,7 @@ class QtoSimplifyDiscardSegmentedCustomSolver(Solver):
         num_layers: int = 1,
         shots: int = 1024,
         mcx_mode: str = "constant",
-        num_segments = 1,
+        num_segments = 10,
     ):
         super().__init__(prb_model, optimizer)
         # 根据排列理论，直接赋值
@@ -149,10 +149,11 @@ class QtoSimplifyDiscardSegmentedCustomSolver(Solver):
             if set_basis_lists[i] - already_set:
                 already_set.update(set_basis_lists[i])
                 max_id = i
-                
+
         max_id += 1 # 左闭右开+1
         iprint(f'range({min_id}, {max_id})')
 
+        num_segments = min(max_id - min_id, num_segments)
         # 保证自定义段数 可以被满足
         assert num_segments >= 1 and num_segments <= max_id - min_id
 
