@@ -114,7 +114,7 @@ class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
                 anc_idx,
                 mcx_mode,
                 num_qubits,
-                self.circuit_option.shots,
+                self.circuit_option.shots * 100,
                 self.circuit_option.provider,
             )
             num_basis_lists.extend(num_basis_list)

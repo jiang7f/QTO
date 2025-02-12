@@ -1,5 +1,5 @@
-should_print = True
-
+# should_print = True
+import pandas as pd
 from qto.problems.facility_location_problem import generate_flp
 from qto.problems.set_cover_problem import generate_scp
 from qto.problems.k_partition_problem import generate_kpp
@@ -16,45 +16,40 @@ import random
 np.random.seed(0xdb)
 random.seed(0x7f)
 
+
+m, n = 7, 7  # 你可以修改 m 和 n 的值
+scale_list = [(i, j) for i in range(1, m + 1) for j in range(1, n + 1)]
+
 num_case = 1
-# a, b = generate_scp(num_case,[(3, 3)])
-a, b = generate_flp(num_case, [(5, 5)], 1, 20)
-# a, b = generate_kpp(num_case, [(5, 3, 4)], 1, 20)
-# a, b = generate_gcp(num_case, [(3, 2)])
-# print(a[0][0])
-# (1, [(2, 1), (3, 2), (3, 3), (4, 3), (4, 4)], 1, 20)
+a, b = generate_flp(num_case, scale_list, 1, 20)
+
 
 print(b)
+
+metrics_lst = ['depth', 'num_params']
 
 best_lst = []
 arg_lst = []
 
-for i in range(num_case):
+data = []
+for i, scale in enumerate(scale_list):
     opt = CobylaOptimizer(max_iter=50, save_address="save")
     aer = DdsimProvider()
     fake = FakeKyivProvider()
     gpu = AerGpuProvider()
-    a[0][i].set_penalty_lambda(200)
-    solver = ChocoSolver(
-        prb_model=a[0][i],  # 问题模型
+    a[i][0].set_penalty_lambda(200)
+    solver = QtoSimplifySolver(
+    # solver = QtoSimplifySolver(
+        prb_model=a[i][0],  # 问题模型
         optimizer=opt,  # 优化器
         provider=aer,  # 提供器（backend + 配对 pass_mannager ）
         num_layers=5,
         shots=1024,
-        # mcx_mode="linear",
     )
-    result = solver.solve()
-    u, v, w, x = solver.evaluation()
-    print(f"{i}: {u}, {v}, {w}, {x}")
+    metrics = solver.circuit_analyze(metrics_lst)
+    print(i, scale, metrics, b[i][0][1])
+    data.append([scale[0], scale[1]] + metrics + [b[i][0][1]])  # (x, y, value)
 
-    best_lst.append(u)
-    arg_lst.append(w)
-    print(aer.run_count)
-    # print(solver.circuit_analyze(['depth', 'culled_depth', 'num_params']))
-    # print(list(solver.time_analyze()))
-    # print(sum(best_lst) / num_case, sum(arg_lst) / num_case)
-    t1, t2 = solver.time_analyze()
-    # print(counter.total_run_time )
-    print("classical", t1)
-    print("quantum", t2)
-    # print(opt.cost_history)
+df = pd.DataFrame(data, columns=["m", "n"] + metrics_lst + ["variables"])
+df.to_csv("more_qubits.csv", index=False)
+# df.to_csv("more_qubits.csv", index=False)

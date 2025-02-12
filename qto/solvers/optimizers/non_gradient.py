@@ -48,6 +48,7 @@ class CobylaOptimizer(Optimizer):
             cost_func_trans, 
             params, 
             method='COBYLA', 
+            # options={'maxiter': optimizer_option.max_iter}, 
             options={'maxiter': optimizer_option.max_iter, 'tol': 1e-50}, 
             callback=callback_cost_recoder if self.save_address else callback
         )
