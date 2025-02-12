@@ -12,7 +12,7 @@ from qiskit_aer.noise import (NoiseModel, QuantumError, ReadoutError,phase_ampli
     pauli_error, depolarizing_error, thermal_relaxation_error)
 from typing import List, Union
 
-
+from mqt import ddsim
 
 def build_Pauli_noise_model(p_meas: float,p_reset: float, p_gate1: float, single_qubit_gates: List = ['id','sx','x']) -> NoiseModel:
     """
@@ -40,7 +40,7 @@ def build_Pauli_noise_model(p_meas: float,p_reset: float, p_gate1: float, single
     
     return noise_bit_flip 
         
-def build_thermal_noise_model(t1: float, t2: float,  single_qubit_gates: List = ['id','sx','x']) -> NoiseModel:
+def build_thermal_noise_model(t1: float, t2: float,  single_qubit_gates: List = ['id','sx','x','rx','rz']) -> NoiseModel:
     """
     Build a thermal noise model for a simulator.
     Args:
@@ -67,21 +67,6 @@ def build_thermal_noise_model(t1: float, t2: float,  single_qubit_gates: List = 
     noise_thermal.add_all_qubit_quantum_error(error_cz, ["cz"])
     return noise_thermal 
 
-def build_depolarizing_noise_model(param: float, single_qubit_gates: List = ['id','sx','x','rz']) -> NoiseModel:
-    """
-    Build a depolarizing noise model for a simulator.
-    Args:
-        param: depolarizing parameter
-        gate_time: gate time
-    """
-    # QuantumError objects
-    error_gate1 = depolarizing_error(param, 1)
-    error_gate2 = error_gate1.tensor(error_gate1)
-    # Add errors to noise model
-    noise_depolarizing = NoiseModel()
-    noise_depolarizing.add_all_qubit_quantum_error(error_gate1, single_qubit_gates)
-    noise_depolarizing.add_all_qubit_quantum_error(error_gate2, ["cz"])
-    return noise_depolarizing
 
 def build_phase_amplitude_damping_error_model(gamma: float, single_qubit_gates: List = ['id','sx','x','rz']) -> NoiseModel:
     param_amp, param_phase = gamma, gamma
@@ -92,7 +77,36 @@ def build_phase_amplitude_damping_error_model(gamma: float, single_qubit_gates: 
     noise_phase_amplitude_damping.add_all_qubit_quantum_error(error_gate1, single_qubit_gates)
     noise_phase_amplitude_damping.add_all_qubit_quantum_error(error_gate2, ["cz"])
     return noise_phase_amplitude_damping
-        
+
+
+def fidelity2lambda_depolar(fidelity,num_qubits=1):
+    N = 2**num_qubits
+    param = (fidelity*N-1)/(N-1)
+    return 1-param
+
+def build_depolarizing_noise_model(
+        p_reset = 0.03,
+        p_meas = 0.0085,
+        p_gate_cz = 0.0037,
+        p_gate_single = 2.361e-4
+        ):
+    from qiskit_aer.noise import NoiseModel
+    from qiskit_aer.noise import ReadoutError
+    from qiskit_aer.noise import pauli_error
+    from qiskit_aer.noise import depolarizing_error
+    # 量子错误对象
+    error_reset = pauli_error([('X', p_reset), ('I', 1 - p_reset)])
+    error_meas = ReadoutError([[1-p_meas,p_meas],[p_meas,1-p_meas]])
+    error_gate1 =  depolarizing_error(fidelity2lambda_depolar(1-p_gate_single), 1)
+    error_gate_cz = depolarizing_error(fidelity2lambda_depolar(1-p_gate_cz,num_qubits=2), 2)
+    # 添加错误到噪声模型
+    noisemodel = NoiseModel(basis_gates=['cz', 'id','rx','sx','rz','reset','measure'])
+    noisemodel.add_all_qubit_quantum_error(error_gate1, ['id','rx','sx','rz'])
+    noisemodel.add_all_qubit_quantum_error(error_reset, "reset")
+    noisemodel.add_all_qubit_readout_error(error_meas)
+    noisemodel.add_all_qubit_quantum_error(error_gate_cz, ["cz"])
+    return  noisemodel
+  
 
 class NoiseAerProvider(Provider):
     def __init__(self,**kwargs):
@@ -100,7 +114,7 @@ class NoiseAerProvider(Provider):
         
     def get_counts(self, qc: QuantumCircuit, shots: int) -> Dict:
         # Create noisy simulator backend
-        self.sim_noise = AerSimulator(noise_model=self.noise_model, shots=shots)
+        self.sim_noise = AerSimulator(noise_model=self.noise_model, shots=shots,method="tensor_network",device="GPU")
         # Transpile circuit for noisy basis gates
         circ_tnoise = transpile(qc, self.sim_noise)
 
@@ -119,7 +133,7 @@ class NoiseAerProvider(Provider):
 
 
     def transpile(self, qc: QuantumCircuit) -> QuantumCircuit:
-        self.sim_noise = AerSimulator(noise_model=self.noise_model)
+        self.sim_noise = AerSimulator(noise_model=self.noise_model, method="tensor_network",device="GPU")
         # Transpile circuit for noisy basis gates
         circ_tnoise = transpile(qc, self.sim_noise)
         return circ_tnoise
@@ -135,9 +149,9 @@ class BitFlipNoiseAerProvider(NoiseAerProvider):
         self.noise_model = build_Pauli_noise_model(p_meas, p_reset, p_gate1)
 
 class DepolarizingNoiseAerProvider(NoiseAerProvider):
-    def __init__(self, param: float, **kwargs):
+    def __init__(self,p_single_gate,**kwargs):
         super().__init__()
-        self.noise_model = build_depolarizing_noise_model(param)
+        self.noise_model = build_depolarizing_noise_model(p_gate_cz=10*p_single_gate,p_gate_single=p_single_gate,**kwargs)
 
 class PhaseAmplitudeDampingNoiseAerProvider(NoiseAerProvider):
     def __init__(self, gamma: float, **kwargs):

@@ -5,3 +5,4 @@ from .ddsim import DdsimProvider
 from .fake import FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider,FakePeekskillProvider
 from .simulator import SimulatorProvider
 from .cloud import CloudProvider
+from .noiseaer import *

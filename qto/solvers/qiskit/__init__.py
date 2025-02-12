@@ -9,6 +9,8 @@ from .provider import (
     FakePeekskillProvider,
     CloudProvider,
     CloudProvider,
+    BitFlipNoiseAerProvider,
+    DepolarizingNoiseAerProvider,ThermalNoiseAerProvider
 )
 from .hea import HeaSolver
 from .penalty import PenaltySolver
@@ -23,6 +25,6 @@ from .qto_simplify import QtoSimplifySolver
 from .qto_simplify_discard import QtoSimplifyDiscardSolver
 from .qto_simplify_discard_segmented import QtoSimplifyDiscardSegmentedSolver
 from .qto_simplify_discard_segmented_filter import QtoSimplifyDiscardSegmentedFilterSolver
-
+from .qto_simplify_discard_segmented_custom import QtoSimplifyDiscardSegmentedCustomSolver
 from .explore.choco_search import ChocoSolverSearch
 from .explore.qto_search import QtoSearchSolver
