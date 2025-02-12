@@ -7,7 +7,8 @@ from qto.utils import iprint
 from qto.utils.errors import QuickFeedbackException
 from qto.utils.linear_system import find_basic_solution
 from qto.solvers.options import CircuitOption, OptimizerOption, ModelOption
-
+import networkx as nx
+from itertools import combinations
 class LinearConstrainedBinaryOptimization(Model):
     def __init__(self):
         """ a linear constrainted binary optimization problem. """
@@ -83,6 +84,16 @@ class LinearConstrainedBinaryOptimization(Model):
         
         return self._lin_constr_mtx
     
+    def draw_constr_graph(self):
+        graph = nx.MultiGraph()
+        for row in self.lin_constr_mtx:
+            nodes_in_row = np.nonzero(row)[0]
+            graph.add_edges_from(combinations(nodes_in_row.tolist(),2))
+        
+        return graph
+        
+            
+            
     @property
     def obj_dct(self):
         if self._obj_dct is None:
@@ -227,7 +238,36 @@ class LinearConstrainedBinaryOptimization(Model):
                     count += 1
                 pbar.update(1)
         return count
+    
+    def calculate_best_second_distance(self):
+        count = 0
+        feasible_solutions = []
+        costs = []
+        from tqdm import tqdm
+        with tqdm(total=1 << len(self.variables)) as pbar:
+            for i in range(1 << len(self.variables)):
+                bitstr = [int(j) for j in list(bin(i)[2:].zfill(len(self.variables)))]
+                if all([np.dot(bitstr,constr[:-1]) == constr[-1] for constr in self.lin_constr_mtx]):
+                    count += 1
+                    feasible_solutions.append(bitstr)
+                    costs.append(self.obj_func(bitstr))
+                pbar.update(1)
+        ## find the best
+        import heapq
+        if self.obj_sense == 'min':
+            largest_two = heapq.nsmallest(2, costs)
+            return abs(largest_two[0] - largest_two[1])
+        else:
+            largest_two = heapq.nlargest(2, costs)
+            return abs(largest_two[0] - largest_two[1])
 
+    def calculate_gap(self):
+        best_cos = self.best_cost
+        current_solution = self.get_feasible_solution()
+        cur_cos = self.obj_func(current_solution)
+        return abs(best_cos-cur_cos)/max(best_cos,cur_cos)
+
+    
     
     @property
     def best_cost(self):
@@ -256,6 +296,49 @@ class LinearConstrainedBinaryOptimization(Model):
         """"""
         return self.optimize_with_gurobi()
         
+
+
+
+if __name__ == "__main__":
+    m = LinearConstrainedBinaryOptimization()
+    num_facilities = 1
+    num_demands = 2
+    x = m.addVars(num_facilities, name="x")
+    y = m.addVars(num_demands, num_facilities, name="y")
+    m.setObjective(sum(3 * y[i, j] for i in range(num_demands) for j in range(num_facilities)) + sum(4 * x[j] for j in range(num_facilities)), 'min')
+
+    m.addConstrs((x[j] <= 2 for i in range(num_demands) for j in range(num_facilities)))
+    m.addConstrs((-2 <= -x[j] for i in range(num_demands) for j in range(num_facilities)))
+    m.addConstrs((x[j] >= -1 for i in range(num_demands) for j in range(num_facilities)))
+    m.addConstrs((x[j] >= 1 for i in range(num_demands) for j in range(num_facilities)))
+    m.addConstrs((y[i, j] + x[j] <=  2 for i in range(num_demands) for j in range(num_facilities)))
+    m.addConstrs((y[i, j] + x[j] + 10 >=  10 for i in range(num_demands) for j in range(num_facilities)))
+    m.addConstrs((y[i, j] + x[j] + 10 >=  -10 for i in range(num_demands) for j in range(num_facilities)))
+    m.addConstrs((y[i, j] + x[j] + 10 >=  11 for i in range(num_demands) for j in range(num_facilities)))
+    m.addConstrs((y[i, j] + x[j] + 10 >=  13 for i in range(num_demands) for j in range(num_facilities)))
+    m.addConstrs((10 >= 13 - y[i, j] - x[j] for i in range(num_demands) for j in range(num_facilities)))
+
+
+    # m.optimize()
+    print(m)
+    graph = m.draw_constr_graph()
+    nx.draw(graph,pos=nx.spring_layout(graph))
+    print(m.calculate_best_second_distance())
+    # print(f"optimal objective value: {m.objVal}")
+    # print(f"solution values: x={x.x}, y={y.x}, z={z.x}")
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         # collapse_state_str = [''.join([str(x) for x in state]) for state in collapse_state]
         # iprint(dict(zip(collapse_state_str, probs)))
@@ -459,5 +542,5 @@ class LinearConstrainedBinaryOptimization(Model):
     #         iteration_count_list.append(iteration_count)
     #     return ARG_list, in_constraints_probs_list, best_solution_probs_list, iteration_count_list  
 
-
+    
 
