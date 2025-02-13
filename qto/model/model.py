@@ -234,6 +234,7 @@ class Model:
         self.constraints: List[Constraint] = []
         self.objective = None   
         self.obj_sense = None
+        self.obj_expr = None
 
     def addVar(self, vtype='binary', *, name) -> Variable:
         if name in self.existing_var_names:
@@ -297,7 +298,7 @@ class Model:
             for var in vars_tuple:
                 term_value *= gurobi_vars[var.name]
             obj_expr += term_value
-        
+        self.obj_expr = obj_expr
         gurobi_model.setObjective(obj_expr, GRB.MINIMIZE if self.obj_sense == 'min' else GRB.MAXIMIZE)
 
         # 添加约束
@@ -311,8 +312,13 @@ class Model:
 
         return gurobi_model
     
-    def optimize_with_gurobi(self):
+    def optimize_with_gurobi(self, obj_exclude=None):
         gurobi_model = self.to_gurobi_model()
+        if obj_exclude:
+            if self.obj_sense == "min":
+                gurobi_model.addConstr(self.obj_expr >= (obj_exclude+1e-2))
+            else:
+                gurobi_model.addConstr(self.obj_expr <= (obj_exclude-1e-2))
         gurobi_model.setParam('OutputFlag', 0)
         gurobi_model.optimize()
 
@@ -343,7 +349,7 @@ class Model:
 if __name__ == '__main__':
     m = Model()
     num_facilities = 1
-    num_demands = 1
+    num_demands = 2
     x = m.addVars(num_facilities, name="x")
     y = m.addVars(num_demands, num_facilities, name="y")
     m.setObjective(sum(3 * y[i, j] for i in range(num_demands) for j in range(num_facilities)) + sum(4 * x[j] for j in range(num_facilities)), 'min')

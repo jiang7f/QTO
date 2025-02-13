@@ -240,26 +240,11 @@ class LinearConstrainedBinaryOptimization(Model):
         return count
     
     def calculate_best_second_distance(self):
-        count = 0
-        feasible_solutions = []
-        costs = []
-        from tqdm import tqdm
-        with tqdm(total=1 << len(self.variables)) as pbar:
-            for i in range(1 << len(self.variables)):
-                bitstr = [int(j) for j in list(bin(i)[2:].zfill(len(self.variables)))]
-                if all([np.dot(bitstr,constr[:-1]) == constr[-1] for constr in self.lin_constr_mtx]):
-                    count += 1
-                    feasible_solutions.append(bitstr)
-                    costs.append(self.obj_func(bitstr))
-                pbar.update(1)
-        ## find the best
-        import heapq
-        if self.obj_sense == 'min':
-            largest_two = heapq.nsmallest(2, costs)
-            return abs(largest_two[0] - largest_two[1])
-        else:
-            largest_two = heapq.nlargest(2, costs)
-            return abs(largest_two[0] - largest_two[1])
+        best_cos = self.best_cost
+        second_cost, _ = self.optimize_with_gurobi(obj_exclude=best_cos)
+        if best_cos-second_cost ==0:
+            return 0
+        return abs(best_cos-second_cost)/max(abs(best_cos),abs(second_cost))
 
     def calculate_gap(self):
         best_cos = self.best_cost
@@ -301,8 +286,8 @@ class LinearConstrainedBinaryOptimization(Model):
 
 if __name__ == "__main__":
     m = LinearConstrainedBinaryOptimization()
-    num_facilities = 1
-    num_demands = 2
+    num_facilities = 2
+    num_demands = 3
     x = m.addVars(num_facilities, name="x")
     y = m.addVars(num_demands, num_facilities, name="y")
     m.setObjective(sum(3 * y[i, j] for i in range(num_demands) for j in range(num_facilities)) + sum(4 * x[j] for j in range(num_facilities)), 'min')

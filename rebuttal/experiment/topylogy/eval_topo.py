@@ -36,7 +36,7 @@ kpp_problems_pkg, kpp_configs_pkg = generate_kpp(num_cases, [(4, 2, 3), (5, 3, 4
 jsp_problems_pkg, jsp_configs_pkg = generate_jsp(num_cases, [(2, 2, 3), (2, 3, 4), (3, 3, 5), (3, 4, 6)], 1, 20)
 scp_problems_pkg, scp_configs_pkg = generate_scp(num_cases, [(4, 4), (5, 5), (6, 6), (7, 7)])
 
-problems_pkg = flp_problems_pkg + gcp_problems_pkg + kpp_problems_pkg + jsp_problems_pkg + scp_problems_pkg
+problems_pkg = gcp_problems_pkg + flp_problems_pkg + kpp_problems_pkg + jsp_problems_pkg + scp_problems_pkg
 
 configs_pkg = flp_configs_pkg + gcp_configs_pkg + kpp_configs_pkg + jsp_configs_pkg + scp_configs_pkg
 with open(f"{new_path}.config", "w") as file:
@@ -45,17 +45,17 @@ with open(f"{new_path}.config", "w") as file:
             file.write(f'{pkid}: {problem}\n')
 
 # mcx_modes = ['constant', 'linear']
-metrics_lst = ['gap', 'mean_degree']
+metrics_lst = ['best_second_gap', 'mean_degree']
 headers = ["pkid"] + metrics_lst
 import matplotlib.pyplot as plt
 import networkx as nx
 def process_layer(prb):
-    gap = prb.calculate_gap()
+    gap = prb.calculate_best_second_distance()
     graph = prb.draw_constr_graph()
     mean_degree = np.mean(graph.degree)
     if not os.path.exists(f"{new_dir}/graph_{prb.pkid}.svg"):
-        plt.figure(figsize=(8, 6))
-        nx.draw(graph, with_labels=True, node_color='lightblue', edge_color='gray', node_size=1000, font_size=15)
+        plt.figure(figsize=(18, 16))
+        nx.draw(graph, with_labels=True, node_color='blue', edge_color='black', node_size=100, font_size=15)
         plt.savefig(f"{new_dir}/graph_{prb.pkid}.svg") 
     return {
         "gap": gap,
@@ -81,7 +81,7 @@ if __name__ == '__main__':
                 print(f'process_{id} build')
                 id += 1
                 problem.pkid = pkid
-                # process_layer(problem)
+                # print(process_layer(problem))
                 # exit()
                 future = executor.submit(process_layer, problem)
                 futures.append((future, pkid))
