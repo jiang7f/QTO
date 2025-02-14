@@ -34,7 +34,7 @@ def penalty_decompose(qc:QuantumCircuit, penalty_m: list, param, num_qubits):
                     qc.rz(coeff * param, j)
                     qc.cx(i, j)
 
-def search_evolution_space_low_cost(qc: QuantumCircuit, params, Hd_bitstr_list, anc_idx, mcx_mode, num_qubits, shots, provider:Provider):
+def search_evolution_space_by_hdi_bitstr(qc: QuantumCircuit, params, Hd_bitstr_list, anc_idx, mcx_mode, num_qubits, shots, provider:Provider):
     num_basis_list = []
     set_basis_list = []
     depth_list = []
@@ -57,33 +57,10 @@ def search_evolution_space_low_cost(qc: QuantumCircuit, params, Hd_bitstr_list, 
         num_basis_list.append(len(counts))
         set_basis_list.append(set(counts.keys()))
         depth_list.append(qc_cp.depth())
+
     return num_basis_list, set_basis_list, depth_list
 
-# def search_evolution_space_low_cost(qc: QuantumCircuit, param, Hd_bitstr_list, anc_idx, mcx_mode, num_qubits, shots, provider:Provider):
-#     num_basis_list = []
-#     set_basis_list = []
-#     depth_list = []
-#     from qiskit_aer import AerSimulator
-#     from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
-#     from qiskit_ibm_runtime import SamplerV2 as Sampler
-#     from qiskit.quantum_info import Statevector
-
-#     CORE_BASIS_GATES = ["measure", "cx", "id", "rz", "sx", "x"]
-#     generate_preset_pass_manager(optimization_level=2, basis_gates=CORE_BASIS_GATES,)
-    
-#     for hdi_vct in Hd_bitstr_list:
-#         nonzero_indices = np.nonzero(hdi_vct)[0].tolist()
-#         hdi_bitstr = [0 if x == -1 else 1 for x in hdi_vct if x != 0]
-#         driver_component(qc, nonzero_indices, anc_idx, hdi_bitstr, param, mcx_mode)
-#         qc_cp:QuantumCircuit = qc.copy()
-#         qc_cp = transpile(qc_cp, provider.backend)
-#         counts = provider.get_counts_with_time(qc_cp, shots=shots)
-#         num_basis_list.append(len(counts))
-#         set_basis_list.append(set(counts.keys()))
-#         depth_list.append(qc_cp.depth())
-#     return num_basis_list, set_basis_list, depth_list
-
-def search_evolution_space(qc: QuantumCircuit, params, transpiled_hlist, anc_idx, mcx_mode, num_qubits, shots, provider:Provider):
+def search_evolution_space_by_transpiled_qclist(qc: QuantumCircuit, params, transpiled_hlist, anc_idx, mcx_mode, num_qubits, shots, provider:Provider):
     num_basis_list = []
     set_basis_list = []
     depth_list = []
@@ -92,8 +69,9 @@ def search_evolution_space(qc: QuantumCircuit, params, transpiled_hlist, anc_idx
     from qiskit_ibm_runtime import SamplerV2 as Sampler
     from qiskit.quantum_info import Statevector
 
-    CORE_BASIS_GATES = ["measure", "cx", "id", "rz", "sx", "x"]
-    generate_preset_pass_manager(optimization_level=2, basis_gates=CORE_BASIS_GATES,)
+    # CORE_BASIS_GATES = ["measure", "cx", "id", "rz", "sx", "x"]
+    # generate_preset_pass_manager(optimization_level=2, basis_gates=CORE_BASIS_GATES,)
+
     for i, transpiled_h in enumerate(transpiled_hlist):
         transpiled_h = transpiled_h.assign_parameters([params[i]])
         qc.compose(transpiled_h, inplace=True)
@@ -103,6 +81,7 @@ def search_evolution_space(qc: QuantumCircuit, params, transpiled_hlist, anc_idx
         num_basis_list.append(len(counts))
         set_basis_list.append(set(counts.keys()))
         depth_list.append(qc_cp.depth())
+
     return num_basis_list, set_basis_list, depth_list
 
 

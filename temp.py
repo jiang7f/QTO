@@ -1,26 +1,16 @@
-def split_list_into_segments(hlist, num_segments):
-    n = len(hlist)
-    # 每段的基本长度
-    segment_length = n // num_segments
-    # 剩余的元素数量
-    remainder = n % num_segments
-    
-    segments = []
-    range_list = []
-    start = 0
+import time
 
-    for i in range(num_segments):
-        # 如果当前段应该多分配一个元素（在余数范围内）
-        end = start + segment_length + (1 if i < remainder else 0)
-        segments.append(hlist[start:end])
-        range_list.append((start, end))
-        start = end
-    
-    return segments, range_list
+# 记录开始时间
+start = time.perf_counter()
 
-# 示例
-hlist = ["a", "b", "c", 1, 2, 6, 7, 1, 1,1,1,11,1,1,]
-num_segments = 9
-result = split_list_into_segments(hlist, num_segments)
-b = result[0]
-print(b)
+# 运行一些操作
+time.sleep(1.5)  # 暂停 1.5 秒
+
+# 记录结束时间
+end = time.perf_counter()
+
+# 计算时间差
+elapsed_time = end - start
+
+# 打印结果
+print(f"Elapsed time: {elapsed_time} seconds")

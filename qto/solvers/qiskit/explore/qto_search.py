@@ -11,7 +11,7 @@ from qto.utils.linear_system import to_row_echelon_form, greedy_simplification_o
 from qto.utils.gadget import iprint
 from ..circuit import QiskitCircuit
 from ..provider import Provider
-from ..circuit.circuit_components import obj_compnt, search_evolution_space_low_cost
+from ..circuit.circuit_components import obj_compnt, search_evolution_space_by_hdi_bitstr
 from ..circuit.hdi_decompose import driver_component
 
 
@@ -107,10 +107,11 @@ class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
         for layer in range(num_layers):
             Hd_params = np.full(num_layers, np.random.uniform(0.1, np.pi / 4 - 0.1))
             iprint(f"===== times of repetition: {layer + 1} ======")
-            num_basis_list, set_basis_list, depth_list = search_evolution_space_low_cost(
+            num_basis_list, set_basis_list, depth_list = search_evolution_space_by_hdi_bitstr(
                 qc,
                 Hd_params,
-                self.model_option.Hd_bitstr_list,
+                # self.transpiled_hlist, # low_cost 
+                self.model_option.Hd_bitstr_list, # high_cost
                 anc_idx,
                 mcx_mode,
                 num_qubits,

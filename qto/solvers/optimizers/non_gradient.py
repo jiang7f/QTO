@@ -9,7 +9,7 @@ from ..options.optimizer_option import CobylaOptimizerOption as OptimizerOption
 
 
 class CobylaOptimizer(Optimizer):
-    def __init__(self, *, max_iter: int = 50, save_address = None, tol=1e-50):
+    def __init__(self, *, max_iter: int = 50, save_address = None, tol=None):
         super().__init__()
         self.optimizer_option: OptimizerOption = OptimizerOption(max_iter=max_iter)
         self.cost_history = []  # 保存 cost_history 属性
@@ -49,8 +49,7 @@ class CobylaOptimizer(Optimizer):
             cost_func_trans, 
             params, 
             method='COBYLA', 
-            tol=self.tol,
-            # options={'maxiter': optimizer_option.max_iter}, 
+            tol=self.tol, 
             options={'maxiter': optimizer_option.max_iter}, 
             callback=callback_cost_recoder if self.save_address else callback
         )

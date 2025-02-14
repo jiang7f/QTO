@@ -13,6 +13,7 @@ from .circuit import QiskitCircuit
 from .provider import Provider
 from .circuit.circuit_components import obj_compnt, new_compnt
 from .explore.qto_search import QtoSearchSolver
+from .explore.qto_search_fast import QtoSearchFastSolver
 
 class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption, hlist: list[QuantumCircuit]):
@@ -113,6 +114,7 @@ class QtoSimplifyDiscardSegmentedSolver(Solver):
             mcx_mode=mcx_mode,
         )
         search_solver = QtoSearchSolver(
+        # search_solver = QtoSearchFastSolver(
             prb_model=prb_model,
             optimizer=optimizer,
             provider=provider,
@@ -124,11 +126,11 @@ class QtoSimplifyDiscardSegmentedSolver(Solver):
 
         # 编译过的transpiled_hlist \O/
         hlist = search_solver.transpiled_hlist
-        _, set_basis_lists, _ = search_solver.search()
-
         min_id = 0
         max_id = -1
 
+        # ***逐个测试方案***
+        _, set_basis_lists, _ = search_solver.search()
         useful_idx = []
         already_set = set()
         if len(set_basis_lists[0]) != 1:
@@ -142,6 +144,9 @@ class QtoSimplifyDiscardSegmentedSolver(Solver):
             if set_basis_lists[i] - already_set:
                 already_set.update(set_basis_lists[i])
                 max_id = i
+
+        # ***逐层搜索+回溯方案***
+        # max_id = search_solver.search()
 
         max_id += 1 # 左闭右开+1
         iprint(f'range({min_id}, {max_id})')

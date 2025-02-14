@@ -6,3 +6,4 @@ from .fake import FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider,Fak
 from .simulator import SimulatorProvider
 from .cloud import CloudProvider
 from .noiseaer import *
+from .noiseddsim import NoiseDDsimProvider

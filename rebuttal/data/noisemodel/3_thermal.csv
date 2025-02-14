@@ -1,0 +1,12 @@
+pkid,pbid,layers,variables,constraints,method,T2,best_solution_probs,in_constraints_probs,ARG,iteration_count,classcial,quantum,run_times
+1,0,5,15,8,QtoSimplifyDiscardSegmentedSolver,50000.0
+1,1,5,15,8,QtoSimplifyDiscardSegmentedSolver,50000.0
+1,2,5,15,8,QtoSimplifyDiscardSegmentedSolver,50000.0
+1,3,5,15,8,QtoSimplifyDiscardSegmentedSolver,50000.0
+1,4,5,15,8,QtoSimplifyDiscardSegmentedSolver,50000.0
+1,5,5,15,8,QtoSimplifyDiscardSegmentedSolver,50000.0
+1,6,5,15,8,QtoSimplifyDiscardSegmentedSolver,50000.0
+1,7,5,15,8,QtoSimplifyDiscardSegmentedSolver,50000.0
+1,8,5,15,8,QtoSimplifyDiscardSegmentedSolver,50000.0
+1,9,5,15,8,QtoSimplifyDiscardSegmentedSolver,50000.0
+1,0,5,15,8,QtoSimplifyDiscardSegmentedSolver,75000.0

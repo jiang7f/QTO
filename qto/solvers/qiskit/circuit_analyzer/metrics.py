@@ -82,13 +82,13 @@ class Metrics:
 
 if __name__ == '__main__':
     # 创建一个量子电路
-    qc = QuantumCircuit(4)
-    qc.rz(1, 0)
-    qc.ecr(1, 0)
+    qc = QuantumCircuit(50)
+    # qc.rz(1, 0)
+    # qc.ecr(1, 0)
     qc.measure_all()
-    qc.reset(1)
-    qc.reset(3)
-    qc.reset(3)
+    # qc.reset(1)
+    # qc.reset(3)
+    # qc.reset(3)
     # # 创建 Feature 实例，并传入 FakeQuebec 后端对象
     metrics = Metrics(qc, FakeKyiv())
     print(f'width: {metrics.width}')

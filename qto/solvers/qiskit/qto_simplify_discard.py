@@ -13,6 +13,7 @@ from .circuit import QiskitCircuit
 from .provider import Provider
 from .circuit.circuit_components import obj_compnt, new_compnt
 from .explore.qto_search import QtoSearchSolver
+from .explore.qto_search_fast import QtoSearchFastSolver
 
 class QtoSimplifyDiscardCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption):
@@ -88,6 +89,7 @@ class QtoSimplifyDiscardSolver(Solver):
             mcx_mode=mcx_mode,
         )
         search_solver = QtoSearchSolver(
+        # search_solver = QtoSearchFastSolver(
             prb_model=prb_model,
             optimizer=optimizer,
             provider=provider,
@@ -95,26 +97,27 @@ class QtoSimplifyDiscardSolver(Solver):
             shots=shots,
             mcx_mode=mcx_mode
         )
-
-        _, set_basis_lists, _ = search_solver.search()
-
         min_id = 0
         max_id = -1
 
+        # ***逐个测试方案***
+        _, set_basis_lists, _ = search_solver.search()
         useful_idx = []
         already_set = set()
         if len(set_basis_lists[0]) != 1:
             useful_idx.append(0)
 
         already_set.update(set_basis_lists[0])
-
         for i in range(1, len(set_basis_lists)):
             if len(set_basis_lists[i - 1]) == 1 and min_id == i - 1:
                 min_id = i
             if set_basis_lists[i] - already_set:
                 already_set.update(set_basis_lists[i])
                 max_id = i
-        
+
+        # ***逐层搜索+回溯方案***
+        # max_id = search_solver.search()
+
         iprint(f'range({min_id}, {max_id})')
         Hd_bitstr_list = np.tile(self.model_option.Hd_bitstr_list, (num_layers, 1))
         self.model_option.Hd_bitstr_list = [item for i, item in enumerate(Hd_bitstr_list) if i >= min_id and i <= max_id]

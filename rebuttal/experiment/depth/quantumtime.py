@@ -58,7 +58,7 @@ def process_layer(prb, num_layers, solver, metrics_lst):
         optimizer = opt,
         provider = gpu if solver in [HeaSolver, PenaltySolver] else ddsim,
         num_layers = num_layers,
-        shots = 1024,
+        shots = 1024*10,
     )
     metrics = used_solver.circuit_analyze(metrics_lst)
     return metrics

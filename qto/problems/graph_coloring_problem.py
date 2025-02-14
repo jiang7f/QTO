@@ -38,8 +38,8 @@ class GraphColoringProblem(LcboModel):
         X = model.addVars(self.num_graphs, self.num_colors, vtype=gp.GRB.BINARY, name="X")
         Y = model.addVars(self.num_colors, vtype=gp.GRB.BINARY, name="Y")
         Z = model.addVars(self.num_adjacent, self.num_colors, vtype=gp.GRB.BINARY, name="Z")
-        
-        model.setObjective(gp.quicksum(Y[c] * self.cost_color[c] for c in range(self.num_colors)), gp.GRB.MINIMIZE)
+        self.obj_expr = gp.quicksum(Y[c] * self.cost_color[c] for c in range(self.num_colors))
+        model.setObjective(self.obj_expr, gp.GRB.MINIMIZE)
         model.addConstrs((gp.quicksum(X[v, i] for i in range(self.num_colors)) == 1 for v in range(self.num_graphs)), "OneColorPerGraph")
         
         for i in range(self.num_colors):

@@ -11,7 +11,7 @@ from qto.solvers.qiskit import (
     QtoSolver, QtoSimplifySolver, QtoSimplifyDiscardSolver, QtoSimplifyDiscardSegmentedSolver, QtoSimplifyDiscardSegmentedFilterSolver,
     AerProvider, AerGpuProvider, DdsimProvider, FakeBrisbaneProvider, FakeKyivProvider, FakeTorinoProvider, 
 )
-import numpy as np
+import numpy as np  
 import random
 np.random.seed(0xdb)
 random.seed(0x7f)
