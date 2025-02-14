@@ -10,7 +10,7 @@ from .provider import (
     CloudProvider,
     CloudProvider,
     BitFlipNoiseAerProvider,
-    DepolarizingNoiseAerProvider,ThermalNoiseAerProvider
+    DepolarizingNoiseAerProvider,ThermalNoiseAerProvider,NoiseDDsimProvider
 )
 from .hea import HeaSolver
 from .penalty import PenaltySolver
