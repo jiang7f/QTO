@@ -28,3 +28,4 @@ from .qto_simplify_discard_segmented_filter import QtoSimplifyDiscardSegmentedFi
 from .qto_simplify_discard_segmented_custom import QtoSimplifyDiscardSegmentedCustomSolver
 from .explore.choco_search import ChocoSolverSearch
 from .explore.qto_search import QtoSearchSolver
+from .explore.qto_search_fast import QtoSearchFastSolver

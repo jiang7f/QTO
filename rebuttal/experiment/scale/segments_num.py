@@ -33,12 +33,12 @@ arg_lst = []
 
 data = []
 for i, scale in enumerate(scale_list):
-    opt = CobylaOptimizer(max_iter=50, save_address="save")
+    opt = CobylaOptimizer(max_iter=50)
     aer = DdsimProvider()
     fake = FakeKyivProvider()
     gpu = AerGpuProvider()
     a[i][0].set_penalty_lambda(200)
-    solver = QtoSimplifySolver(
+    solver = QtoSimplifyDiscardSolver(
     # solver = QtoSimplifySolver(
         prb_model=a[i][0],  # 问题模型
         optimizer=opt,  # 优化器
@@ -51,5 +51,5 @@ for i, scale in enumerate(scale_list):
     data.append([scale[0], scale[1]] + metrics + [b[i][0][1]])  # (x, y, value)
 
 df = pd.DataFrame(data, columns=["m", "n"] + metrics_lst + ["variables"])
-df.to_csv("more_qubits.csv", index=False)
+df.to_csv("more_qubits_dis_3.csv", index=False)
 # df.to_csv("more_qubits.csv", index=False)

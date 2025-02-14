@@ -102,7 +102,7 @@ class QtoSimplifyDiscardSegmentedCustomSolver(Solver):
         num_layers: int = 1,
         shots: int = 1024,
         mcx_mode: str = "constant",
-        num_segments = 10,
+        num_segments = 1,
     ):
         super().__init__(prb_model, optimizer)
         # 根据排列理论，直接赋值
@@ -134,7 +134,7 @@ class QtoSimplifyDiscardSegmentedCustomSolver(Solver):
         _, set_basis_lists, _ = search_solver.search()
 
         min_id = 0
-        max_id = 0
+        max_id = -1
 
         useful_idx = []
         already_set = set()

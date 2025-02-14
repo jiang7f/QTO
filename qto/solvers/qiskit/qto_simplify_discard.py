@@ -99,7 +99,7 @@ class QtoSimplifyDiscardSolver(Solver):
         _, set_basis_lists, _ = search_solver.search()
 
         min_id = 0
-        max_id = 0
+        max_id = -1
 
         useful_idx = []
         already_set = set()
@@ -109,8 +109,8 @@ class QtoSimplifyDiscardSolver(Solver):
         already_set.update(set_basis_lists[0])
 
         for i in range(1, len(set_basis_lists)):
-            # if len(set_basis_lists[i - 1]) == 1 and min_id == i - 1:
-            #     min_id = i
+            if len(set_basis_lists[i - 1]) == 1 and min_id == i - 1:
+                min_id = i
             if set_basis_lists[i] - already_set:
                 already_set.update(set_basis_lists[i])
                 max_id = i

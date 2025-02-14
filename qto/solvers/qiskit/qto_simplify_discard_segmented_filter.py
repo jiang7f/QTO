@@ -121,7 +121,7 @@ class QtoSimplifyDiscardSegmentedFilterSolver(Solver):
         _, set_basis_lists, _ = search_solver.search()
 
         min_id = 0
-        max_id = 0
+        max_id = -1
 
         useful_idx = []
         already_set = set()

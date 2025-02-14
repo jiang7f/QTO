@@ -262,6 +262,7 @@ class LinearConstrainedBinaryOptimization(Model):
             return abs(largest_two[0] - largest_two[1])
 
     def calculate_gap(self):
+        # needcheck
         best_cos = self.best_cost
         current_solution = self.get_feasible_solution()
         cur_cos = self.obj_func(current_solution)
