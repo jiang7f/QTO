@@ -76,13 +76,15 @@ if __name__ == '__main__':
     set_timeout = 60 * 60 * 24 * 3 # Set timeout duration
     num_complete = 0
     print(new_path)
-    with open(f'{new_path}.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(headers)  # Write headers once
+    # with open(f'{new_path}.csv', mode='w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow(headers)  # Write headers once
 
     num_processes_cpu = os.cpu_count()
     # pkid-pbid: 问题包序-包内序号
     for pkid, (diff_level, problems) in enumerate(problems_pkg):
+        if pkid == 0:
+            continue
         for solver in solvers:
             if solver in [HeaSolver, PenaltySolver]:
                 num_processes = 2**(4 - diff_level)
@@ -94,8 +96,8 @@ if __name__ == '__main__':
 
                 for pbid, prb in enumerate(problems):
                     print(f'{pkid}-{pbid}, {layer}, {solver} build')
-                    # print(process_layer(prb, layer, solver))
-                    # exit()
+                    print(process_layer(prb, layer, solver))
+                    exit()
                     future = executor.submit(process_layer, prb, layer, solver)
                     futures.append((future, prb, pkid, pbid, layer, solver.__name__))
 

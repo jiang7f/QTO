@@ -56,7 +56,7 @@ if __name__ == '__main__':
     ## use argparse to parse command line arguments
     import argparse
     parser = argparse.ArgumentParser(description='Run experiments for QTO')
-    parser.add_argument('--num_cases', type=int, default=10, help='Number of cases to generate')
+    parser.add_argument('--num_cases', type=int, default=50, help='Number of cases to generate')
     
     args = parser.parse_args()
     num_cases = args.num_cases
@@ -82,7 +82,7 @@ if __name__ == '__main__':
             for problem in configs:
                 file.write(f'{pkid}: {problem}\n')
     solvers = [QtoSimplifyDiscardSegmentedSolver]
-    p_gate1_lst = [1e-5,5e-5,1e-4,3e-4,5e-4,8e-4,1e-3]
+    p_gate1_lst = [1e-6,1e-5,1e-4,3e-4,5e-4,8e-4,1e-3,5e-3,1e-2]
 
     all_start_time = time.perf_counter()
     set_timeout = 60 * 60 * 24 * 3 # Set timeout duration
@@ -101,7 +101,7 @@ if __name__ == '__main__':
             if solver in [HeaSolver, PenaltySolver]:
                 num_processes = 2**(4 - diff_level)
             else:
-                num_processes = 100
+                num_processes = 200
 
             with ProcessPoolExecutor(max_workers=num_processes) as executor:
                 futures = []

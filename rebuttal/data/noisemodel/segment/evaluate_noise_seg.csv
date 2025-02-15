@@ -39,3 +39,4 @@ pkid,pbid,layers,variables,constraints,method,best_solution_probs,in_constraints
 1,7,5,12,6,ChocoSolver
 1,8,5,12,6,ChocoSolver
 1,9,5,12,6,ChocoSolver,0.09765625,5.56640625,62.438092890647106,85,61.45248490432277,5217.88110017078,88064
+1,0,5,12,6,ChocoSegmentedSolver
