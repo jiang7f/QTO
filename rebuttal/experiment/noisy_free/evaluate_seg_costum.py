@@ -64,7 +64,7 @@ def process_layer(prb, num_layers, solver):
         optimizer = opt,
         provider = gpu if solver in [HeaSolver, PenaltySolver] else aer,
         num_layers = num_layers,
-        shots = 1024,
+        shots = 10000,
         num_segments=10,
     )
     used_solver.solve()

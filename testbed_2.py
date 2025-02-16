@@ -18,7 +18,7 @@ random.seed(0x7f)
 
 num_case = 1
 # a, b = generate_scp(num_case,[(3, 3)])
-a, b = generate_flp(num_case, [(1, 1)], 1, 20)
+a, b = generate_flp(num_case, [(4, 3)], 1, 20)
 # a, b = generate_kpp(num_case, [(5, 3, 4)], 1, 20)
 # a, b = generate_gcp(num_case, [(3, 2)])
 # print(a[0][0])
@@ -30,18 +30,18 @@ best_lst = []
 arg_lst = []
 
 for i in range(num_case):
-    opt = CobylaOptimizer(max_iter=300, save_address="save")
+    opt = CobylaOptimizer(max_iter=5, save_address="save")
     aer = DdsimProvider()
     fake = FakeKyivProvider()
     gpu = AerGpuProvider()
     a[0][i].set_penalty_lambda(200)
-    solver = QtoSimplifyDiscardSolver(
+    solver = QtoSimplifyDiscardSegmentedCustomSolver(
         prb_model=a[0][i],  # 问题模型
         optimizer=opt,  # 优化器
         provider=aer,  # 提供器（backend + 配对 pass_mannager ）
         num_layers=5,
         shots=1024,
-        # num_segments=10,
+        num_segments=10,
         # mcx_mode="linear",
     )
     result = solver.solve()

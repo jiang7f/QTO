@@ -62,7 +62,7 @@ class QtoSimplifyDiscardSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
                 qc_temp.compose(qc_add, inplace=True)
                 qc_temp.measure(range(num_qubits), range(num_qubits)[::-1])
 
-                # qc_temp = self.circuit_option.provider.transpile(qc_temp)
+                qc_temp = self.circuit_option.provider.transpile(qc_temp)
 
                 # iprint(f'hdi depth: {qc_temp.depth()}')
 
@@ -125,7 +125,7 @@ class QtoSimplifyDiscardSegmentedSolver(Solver):
         # self.hlist = search_solver.hlist[:1]
 
         # 编译过的transpiled_hlist \O/
-        hlist = search_solver.transpiled_hlist
+        hlist = search_solver.hlist
         min_id = 0
         max_id = -1
 
