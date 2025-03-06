@@ -14,12 +14,9 @@ from .provider import Provider
 from .circuit.circuit_components import obj_compnt, new_compnt
 from .explore.qto_search import QtoSearchSolver
 
-class QtoSimplifyDiscardSegmentedCustomCircuit(QiskitCircuit[ChCircuitOption]):
+class RasenganSegmentedCircuit(QiskitCircuit[ChCircuitOption]):
     def __init__(self, circuit_option: ChCircuitOption, model_option: ModelOption, hlist: list[QuantumCircuit], segmentation):
         super().__init__(circuit_option, model_option)
-        # iprint(self.model_option.feasible_state)
-        # iprint(self.model_option.Hd_bitstr_list)
-        # exit()
         self.inference_circuit = self.create_circuit()
         self.hlist = hlist
         self.segments_list = segmentation[0]   #分割方案 [[1, 2], [3, 4]]
@@ -33,18 +30,11 @@ class QtoSimplifyDiscardSegmentedCustomCircuit(QiskitCircuit[ChCircuitOption]):
         collapse_state, probs = self.process_counts(counts)
         return collapse_state, probs
     
-    # @property
-    # def inference_circuit(self):   
-    #     raise Exception("This circuit is not yet suitable for analysis")
-    
     def segmented_excute_circuit(self, params) -> QuantumCircuit:
         mcx_mode = self.circuit_option.mcx_mode
         num_qubits = self.model_option.num_qubits
-        # self.qc = self.circuit_option.provider.transpile(qc)
 
         def run_and_pick(dict:dict, hdi_qc_list: list[QuantumCircuit], params):
-            # iprint("--------------")
-            # iprint(f'input dict: {dict}')
             dicts = []
             total_count = sum(dict.values())
             for key, value in dict.items():
@@ -57,32 +47,20 @@ class QtoSimplifyDiscardSegmentedCustomCircuit(QiskitCircuit[ChCircuitOption]):
                     if key_i == '1':
                         qc_temp.x(idx)
 
-                # qc_temp = self.circuit_option.provider.transpile(qc_temp)
                 for idx, hdi_qc in enumerate(hdi_qc_list):
                     qc_add = hdi_qc.assign_parameters([params[idx]])
                     qc_temp.compose(qc_add, inplace=True)
 
                 qc_temp.measure(range(num_qubits), range(num_qubits)[::-1])
-
                 qc_temp = self.circuit_option.provider.transpile(qc_temp)
-
-                # iprint(f'hdi depth: {qc_temp.depth()}')
-
                 count = self.circuit_option.provider.get_counts_with_time(qc_temp, shots=self.circuit_option.shots * value // total_count)
-                # origin = self.circuit_option.shots * value // total_count
-                # count = self.circuit_option.provider.get_counts_with_time(qc_temp, shots=1024)
-                # count = {k: round(v / 1024 * origin, 0) for k, v in count.items() if round(v / 1024 * origin, 0) > 0}
-
                 dicts.append(count)
-            # iprint(f'this hdi depth: {qc_temp.depth()}')
 
-            # iprint(f'evolve: {dicts}')
             merged_dict = {}
             for d in dicts:
                 for key, value in d.items():
                     # if all([np.dot([int(char) for char in key], constr[:-1]) == constr[-1] for constr in self.model_option.lin_constr_mtx]):
                         merged_dict[key] = merged_dict.get(key, 0) + value
-            # iprint(f'feasible counts: {merged_dict}')
             return merged_dict
 
 
@@ -92,7 +70,7 @@ class QtoSimplifyDiscardSegmentedCustomCircuit(QiskitCircuit[ChCircuitOption]):
 
         return register_counts
 
-class QtoSimplifyDiscardSegmentedCustomSolver(Solver):
+class RasenganSegmentedSolver(Solver):
     def __init__(
         self,
         *,
@@ -126,8 +104,6 @@ class QtoSimplifyDiscardSegmentedCustomSolver(Solver):
             shots=shots,
             mcx_mode=mcx_mode
         )
-        
-        # self.hlist = search_solver.hlist[:1]
 
         # 编译过的transpiled_hlist \O/
         hlist = search_solver.hlist
@@ -188,7 +164,7 @@ class QtoSimplifyDiscardSegmentedCustomSolver(Solver):
     @property
     def circuit(self):
         if self._circuit is None:
-            self._circuit = QtoSimplifyDiscardSegmentedCustomCircuit(self.circuit_option, self.model_option, self.hlist, self.segmentation)
+            self._circuit = RasenganSegmentedCircuit(self.circuit_option, self.model_option, self.hlist, self.segmentation)
         return self._circuit
 
 

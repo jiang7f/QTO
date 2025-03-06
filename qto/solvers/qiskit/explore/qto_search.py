@@ -95,8 +95,6 @@ class QtoSearchCircuit(QiskitCircuit[ChCircuitOption]):
             
         qc = self.circuit_option.provider.transpile(qc)
         # Ho_params = np.random.rand(num_layers)
-        
-        # Hd_params = np.random.rand(num_layers)
 
         for i in np.nonzero(self.model_option.feasible_state)[0]:
             qc.x(i)

@@ -20,6 +20,9 @@ from .choco import ChocoSolver
 from .choco_segmented import ChocoSegmentedSolver
 from .choco_inter_meas import ChocoInterMeasSolver
 
+from .rasengan import RasenganSolver
+from .rasengan_segmented import RasenganSegmentedSolver
+
 from .qto import QtoSolver
 from .qto_simplify import QtoSimplifySolver
 from .qto_simplify_discard import QtoSimplifyDiscardSolver

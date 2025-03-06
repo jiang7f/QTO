@@ -31,7 +31,7 @@ class CobylaOptimizer(Optimizer):
             iteration_count += 1
 
             # if iteration_count % 10 == 0:
-            #     iprint(f"iteration {iteration_count}, result: {cost_func(params)}")
+                # iprint(f"iteration {iteration_count}, result: {cost_func(params)}")
 
 
         def callback_cost_recoder(params):
